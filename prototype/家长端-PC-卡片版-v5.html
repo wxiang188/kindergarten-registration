@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>幼儿园报名缴费系统 - 家长端 PC 原型 v1</title>
+<style>
+:root {
+  --primary: #1677FF; --primary-hover: #4096FF; --primary-active: #0958D9; --primary-bg: #E6F4FF;
+  --success: #52C41A; --warning: #FAAD14; --error: #FF4D4F;
+  --text: rgba(0,0,0,0.88); --text-secondary: rgba(0,0,0,0.65); --text-tertiary: rgba(0,0,0,0.45);
+  --border: #D9D9D9; --border-split: #F0F0F0;
+  --bg: #F5F5F5; --bg-card: #FFF;
+  --font: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans SC',sans-serif;
+  --radius: 6px; --radius-lg: 8px; --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --header-h: 52px; --sider-w: 220px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:14px;color:var(--text);background:var(--bg);line-height:1.5;min-height:100vh}
+/* === Login === */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#E6F4FF 0%,#BAE0FF 100%);position:relative}
+.login-card{width:420px;background:#fff;border-radius:12px;padding:40px;box-shadow:0 8px 40px rgba(0,0,0,0.10)}
+.login-card h1{font-size:22px;font-weight:700;text-align:center;margin-bottom:4px}
+.login-card .sub{text-align:center;color:var(--text-tertiary);font-size:13px;margin-bottom:32px}
+.login-card .form-group{margin-bottom:20px}
+.login-card label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text)}
+.login-card input{width:100%;height:40px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;outline:none;transition:border-color .2s}
+.login-card input:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-bg)}
+.login-card .login-btn{width:100%;height:42px;border:none;border-radius:var(--radius);background:var(--primary);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:8px}
+.login-card .login-btn:hover{background:var(--primary-hover)}
+.login-card .login-btn:active{background:var(--primary-active)}
+.login-card .login-footer{text-align:center;margin-top:16px;font-size:13px;color:var(--text-tertiary)}
+.login-card .login-footer a{color:var(--primary);cursor:pointer;text-decoration:none}
+.login-card .login-footer a:hover{text-decoration:underline}
+.login-error{color:var(--error);font-size:13px;text-align:center;margin-top:8px;display:none}
+/* === Header === */
+header{height:var(--header-h);background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border-split);position:fixed;top:0;left:0;right:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+header .logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:var(--text)}
+header .logo .logo-icon{width:32px;height:32px;background:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700}
+header .header-right{display:flex;align-items:center;gap:16px}
+header .user-info{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary)}
+header .user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+header .role-switch{font-size:13px;cursor:pointer;color:var(--primary);padding:4px 12px;border:1px solid var(--primary);border-radius:var(--radius);background:transparent;transition:all .2s}
+header .role-switch:hover{background:var(--primary-bg)}
+/* === Layout === */
+.layout{display:flex;margin-top:var(--header-h);min-height:calc(100vh - var(--header-h))}
+/* === Sider === */
+.sider{width:var(--sider-w);background:#fff;border-right:1px solid var(--border-split);padding-top:8px;flex-shrink:0;position:fixed;top:var(--header-h);bottom:0;left:0;overflow-y:auto}
+.sider .menu-item{display:flex;align-items:center;gap:10px;padding:12px 24px;color:var(--text-secondary);font-size:14px;cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.sider .menu-item:hover{color:var(--text);background:var(--primary-bg)}
+.sider .menu-item.active{color:var(--primary);background:var(--primary-bg);border-left-color:var(--primary);font-weight:600}
+.sider .menu-item .menu-icon{font-size:18px;width:20px;text-align:center}
+.sider .menu-divider{height:1px;background:var(--border-split);margin:8px 16px}
+.sider .menu-group-title{font-size:11px;color:var(--text-tertiary);padding:16px 24px 4px;text-transform:uppercase;letter-spacing:1px}
+/* === Main Content === */
+.main-content{margin-left:var(--sider-w);flex:1;padding:24px 32px;min-height:calc(100vh - var(--header-h))}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-size:22px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.page-subtitle{font-size:13px;color:var(--text-tertiary);margin-bottom:20px}
+/* === Cards === */
+.card{background:var(--bg-card);border-radius:var(--radius-lg);padding:24px;margin-bottom:16px;border:1px solid var(--border-split)}
+.card-title{font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+/* === Status Tags === */
+.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px;line-height:1.8;font-weight:500}
+.tag-gray{background:#FAFAFA;color:var(--text-secondary);border:1px solid var(--border)}
+.tag-blue{background:var(--primary-bg);color:var(--primary);border:1px solid #91CAFF}
+.tag-green{background:#F6FFED;color:#52C41A;border:1px solid #B7EB8F}
+.tag-red{background:#FFF2F0;color:#FF4D4F;border:1px solid #FFCCC7}
+.tag-orange{background:#FFF7E6;color:#FA8C16;border:1px solid #FFD591}
+/* === Buttons === */
+.btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 16px;border-radius:var(--radius);font-size:14px;font-family:var(--font);cursor:pointer;border:1px solid transparent;transition:all .2s;white-space:nowrap;text-decoration:none}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-default{background:#fff;color:var(--text);border-color:var(--border)}
+.btn-default:hover{color:var(--primary);border-color:var(--primary)}
+.btn-danger{background:#fff;color:var(--error);border-color:var(--error)}
+.btn-danger:hover{background:#FFF2F0;border-color:var(--error)}
+.btn-text{background:transparent;border:none;color:var(--primary);padding:0 4px;height:auto}
+.btn-text:hover{color:var(--primary-hover)}
+.btn-sm{height:28px;font-size:12px;padding:0 12px}
+.btn-lg{height:40px;padding:0 24px;font-size:16px}
+.btn-group{display:flex;gap:8px;align-items:center}
+/* === Forms === */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px}
+.form-grid .full-width{grid-column:1/-1}
+.form-group{margin-bottom:0}
+.form-label{display:block;font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.form-label .required{color:var(--error);margin-right:2px}
+.form-input,.form-select,.form-textarea{width:100%;height:34px;padding:0 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:var(--font);outline:none;transition:border-color .2s;background:#fff}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-bg)}
+.form-input[readonly]{background:var(--bg);color:var(--text-secondary);cursor:not-allowed}
+.form-textarea{height:72px;padding:8px 11px;resize:vertical}
+.form-radio-group{display:flex;gap:16px;padding-top:6px}
+.form-radio{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer}
+.form-radio input{width:16px;height:16px;accent-color:var(--primary)}
+.section-block{margin-bottom:20px}
+.section-block .section-title{font-size:15px;font-weight:600;margin-bottom:12px;color:var(--text);display:flex;align-items:center;gap:6px}
+/* === Upload Box === */
+.upload-box{border:1px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;color:var(--text-tertiary);font-size:13px;cursor:pointer;background:#FAFAFA;transition:all .2s}
+.upload-box:hover{background:var(--primary-bg);border-color:var(--primary);color:var(--primary)}
+.upload-box .icon{font-size:28px;margin-bottom:4px}
+/* === Child Card === */
+.child-card{background:var(--bg-card);border:1px solid var(--border-split);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden;transition:box-shadow .2s}
+.child-card:hover{box-shadow:var(--shadow)}
+.child-top{padding:16px 20px 10px;display:flex;align-items:center}
+.child-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0}
+.child-info{flex:1;margin-left:16px;min-width:0}
+.child-name-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:2px}
+.child-name{font-size:16px;font-weight:600}
+.child-meta{font-size:13px;color:var(--text-tertiary)}
+.child-action-bottom{padding:10px 20px 14px;border-top:1px solid var(--border-split);display:flex;justify-content:flex-end;gap:8px}
+/* === Bill Card === */
+.bill-card{background:var(--bg-card);border:1px solid var(--border-split);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden}
+.bill-top{padding:20px 24px 10px}
+.bill-header{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.bill-student{font-size:16px;font-weight:600}
+.bill-type{font-size:12px;padding:2px 8px;border-radius:4px;background:var(--primary-bg);color:var(--primary)}
+.bill-semester{font-size:13px;color:var(--text-tertiary)}
+.bill-amount{font-size:28px;font-weight:700;margin:4px 0 8px}
+.bill-meta{font-size:13px;color:var(--text-tertiary);margin-bottom:8px;display:flex;gap:20px}
+.bill-action-bottom{display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border-split);padding:12px 24px 14px}
+/* === Bill Tab === */
+.bill-tabs{display:flex;gap:0;margin-bottom:16px;background:var(--bg-card);border-radius:var(--radius);padding:3px;border:1px solid var(--border-split);width:fit-content}
+.bill-tab{padding:8px 24px;font-size:14px;font-weight:500;border-radius:var(--radius);cursor:pointer;color:var(--text-secondary);transition:all .2s;text-align:center;min-width:100px}
+.bill-tab.active{background:var(--primary);color:#fff}
+.bill-tab:not(.active):hover{color:var(--primary)}
+/* === Detail Grid === */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 24px}
+.detail-item{padding:8px 0;border-bottom:1px solid var(--border-split)}
+.detail-item.full-width{grid-column:1/-1}
+.detail-label{font-size:12px;color:var(--text-tertiary)}
+.detail-value{font-size:14px;color:var(--text);margin-top:1px}
+/* === Timeline === */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--border-split)}
+.timeline-item{position:relative;padding-bottom:24px}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-dot{position:absolute;left:-22px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--primary);border:3px solid var(--primary-bg)}
+.timeline-dot.success{background:var(--success)}
+.timeline-dot.error{background:var(--error)}
+.timeline-dot.wait{background:var(--text-tertiary);border-color:#F0F0F0}
+.timeline-content{font-size:14px}
+.timeline-time{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+/* === Empty State === */
+.empty-state{padding:60px 20px;text-align:center;color:var(--text-tertiary)}
+.empty-state .icon{font-size:56px;margin-bottom:12px;opacity:0.35}
+.empty-state p{font-size:15px}
+.empty-state .sub{font-size:13px;margin-top:6px}
+/* === QR Code (PC Payment) === */
+.qr-area{text-align:center;padding:32px;background:#FAFAFA;border-radius:var(--radius-lg);border:1px solid var(--border-split)}
+.qr-placeholder{width:180px;height:180px;margin:0 auto 16px;background:#fff;border:2px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-tertiary);flex-direction:column;gap:8px}
+.qr-placeholder .qr-icon{font-size:48px;opacity:0.5}
+.qr-placeholder .qr-label{font-size:13px;color:var(--text-tertiary)}
+.qr-tip{font-size:13px;color:var(--text-secondary);margin-top:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+/* === Invoice === */
+.invoice-card{max-width:500px;margin:0 auto}
+.invoice-header{text-align:center;padding:24px 0 16px;border-bottom:1px solid var(--border-split)}
+.invoice-header .amount{font-size:32px;font-weight:700;margin:8px 0}
+.invoice-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-split);font-size:14px}
+.invoice-row .label{color:var(--text-tertiary)}
+.invoice-row .value{font-weight:500}
+/* === Health === */
+.health-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-split)}
+.health-label{font-size:14px;color:var(--text)}
+.health-options{display:flex;gap:16px}
+.health-opt{font-size:13px;padding:4px 16px;border-radius:16px;border:1px solid var(--border);cursor:pointer;color:var(--text-secondary);background:#fff;transition:all .2s}
+.health-opt:hover{border-color:var(--primary)}
+.health-opt.selected{background:var(--primary-bg);border-color:var(--primary);color:var(--primary)}
+/* === Avatar Upload === */
+.avatar-upload{width:72px;height:72px;border-radius:50%;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);font-size:12px;cursor:pointer;text-align:center;background:#FAFAFA;line-height:1.3;flex-shrink:0;transition:all .2s}
+.avatar-upload:hover{background:var(--primary-bg);border-color:var(--primary);color:var(--primary)}
+/* === Attachments === */
+.attach-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.attach-item{border:1px solid var(--border-split);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .2s}
+.attach-item:hover{border-color:var(--primary);background:var(--primary-bg)}
+.attach-item .icon{font-size:32px;margin-bottom:8px}
+.attach-item .name{font-size:13px;color:var(--text-secondary)}
+.attach-item .hint{font-size:11px;color:var(--text-tertiary);margin-top:4px}
+/* === Toast === */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.78);color:#fff;padding:14px 28px;border-radius:var(--radius-lg);font-size:14px;z-index:300;display:none;max-width:360px;text-align:center;animation:fadeIn .25s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+/* === Modal === */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#fff;border-radius:12px;width:520px;max-height:80vh;overflow-y:auto;padding:24px 32px;box-shadow:0 8px 40px rgba(0,0,0,0.12)}
+.modal-box h3{font-size:18px;font-weight:600;margin-bottom:16px}
+.modal-box .modal-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border-split)}
+/* === Progress Bar animation === */
+@keyframes progressPulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.pulse{animation:progressPulse 1.5s ease-in-out infinite}
+/* === Scrollbar === */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#bbb}
+::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div class="login-page" id="loginPage">
+  <div class="login-card">
+    <h1>幼儿园报名缴费系统</h1>
+    <div class="sub">家长端 · 苏州大学教职工登录</div>
+    <div class="form-group">
+      <label>工号</label>
+      <input id="loginId" type="text" placeholder="请输入工号" value="SU2021001">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input id="loginPwd" type="password" placeholder="请输入密码" value="••••••••">
+    </div>
+    <button class="login-btn" onclick="doLogin()">登 录</button>
+    <div class="login-error" id="loginError">工号或密码错误，请重新输入</div>
+    <div class="login-footer">
+      <a onclick="showToast('请打开苏大 APP 扫码')">苏大 APP 扫码登录 →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app" style="display:none">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">幼</div>
+      <span>幼儿园报名缴费系统</span>
+    </div>
+    <div class="header-right">
+      <div class="user-info">
+        <div class="user-avatar">张</div>
+        <span>张建国 · 苏州大学</span>
+      </div>
+      <button class="role-switch" onclick="showToast('已退出登录')" style="color:var(--text-tertiary);border-color:var(--border)">退出登录</button>
+    </div>
+  </header>
+
+  <!-- Layout -->
+  <div class="layout">
+
+    <!-- Sider -->
+    <aside class="sider">
+      <div class="menu-group-title">家长端</div>
+      <div class="menu-item active" data-page="home" onclick="switchNav('home',this)">
+        <span class="menu-icon">🏠</span> 子女列表
+      </div>
+      <div class="menu-item" data-page="bills" onclick="switchNav('bills',this)">
+        <span class="menu-icon">💳</span> 缴费账单
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <main class="main-content" id="mainContent">
+
+      <!-- ===== PAGE: Home (子女列表) ===== -->
+      <div class="page active" id="page-home">
+        <div class="page-title">子女列表</div>
+        <div class="page-subtitle">共 <span id="childCount">5</span> 名子女</div>
+
+        <div id="childList" style="margin-bottom:16px">
+          <!-- rendered by JS -->
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-default" onclick="openBindModal()">＋ 绑定子女</button>
+        </div>
+      </div>
+
+      <!-- ===== PAGE: Bind (绑定子女) ===== -->
+      <div class="page" id="page-bind">
+        <div class="page-title">绑定子女</div>
+        <div class="page-subtitle">确认系统同步的子女信息，或手动新增未在系统中的子女</div>
+
+        <div class="card">
+          <div class="card-title">📥 教职工系统已同步</div>
+          <div id="syncChildren"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">➕ 手动新增子女</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label"><span class="required">*</span>幼儿姓名</label>
+              <input class="form-input" placeholder="请输入幼儿姓名">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span class="required">*</span>性别</label>
+              <select class="form-select"><option value="">请选择</option><option>男</option><option>女</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span class="required">*</span>出生日期</label>
+              <input class="form-input" type="date">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><span class="required">*</span>证件类型</label>
+              <select class="form-select"><option value="">请选择</option><option>身份证</option><option>护照</option><option>港澳通行证</option><option>其他</option></select>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label"><span class="required">*</span>证件号码</label>
+              <input class="form-input" placeholder="请输入证件号码" style="max-width:400px">
+            </div>
+          </div>
+          <div class="btn-group" style="margin-top:16px">
+            <button class="btn btn-primary" onclick="showToast('绑定成功');switchNav('home',document.querySelector('.menu-item[data-page=home]'))">确认绑定</button>
+            <button class="btn btn-default" onclick="switchNav('home',document.querySelector('.menu-item[data-page=home]'))">取消</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PAGE: Enroll (入学报名) ===== -->
+      <div class="page" id="page-enroll">
+        <div class="page-title">入学报名</div>
+        <div class="page-subtitle">为子女提交入学报名申请，带 <span style="color:var(--error)">*</span> 为必填项</div>
+
+        <form id="enrollForm" onsubmit="return false">
+          <!-- Block 1: 幼儿基本信息 -->
+          <div class="card section-block">
+            <div class="section-title">📋 幼儿基本信息</div>
+            <div style="display:flex;gap:20px;align-items:center;margin-bottom:16px">
+              <div class="avatar-upload" onclick="showToast('点击上传照片')">点击<br>上传照片</div>
+              <span style="font-size:13px;color:var(--text-secondary)">幼儿照片（JPG/PNG，单张）</span>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">幼儿姓名</label>
+                <input class="form-input" value="张小明" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">性别</label>
+                <input class="form-input" value="男" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">出生日期</label>
+                <input class="form-input" value="2021-03-15" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>与子女关系</label>
+                <select class="form-select"><option>父亲</option><option>母亲</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>出生地</label>
+                <input class="form-input" placeholder="如：江苏苏州">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>证件类型</label>
+                <select class="form-select"><option>身份证</option><option>护照</option><option>其他</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>证件号码</label>
+                <input class="form-input" placeholder="请输入证件号码">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>国籍</label>
+                <select class="form-select"><option>中国</option><option>其他国家</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>民族</label>
+                <select class="form-select"><option>汉族</option><option>蒙古族</option><option>回族</option><option>藏族</option><option>维吾尔族</option><option>苗族</option><option>壮族</option><option>其他</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">籍贯</label>
+                <input class="form-input" placeholder="如：江苏苏州">
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label"><span class="required">*</span>户口所在地</label>
+                <input class="form-input" style="max-width:600px" placeholder="如：苏州市姑苏区XX路XX号">
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label"><span class="required">*</span>家庭常驻地址</label>
+                <input class="form-input" style="max-width:600px" placeholder="如：苏州市工业园区XX小区XX幢">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>入园年份</label>
+                <select class="form-select"><option>2026</option><option>2025</option><option>2027</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">联络邮箱</label>
+                <input class="form-input" type="email" placeholder="请输入邮箱地址">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>是否独生</label>
+                <div class="form-radio-group">
+                  <label class="form-radio"><input type="radio" name="onlyChild" value="是" checked> 是</label>
+                  <label class="form-radio"><input type="radio" name="onlyChild" value="否" onchange="document.getElementById('childOrder').style.display=this.checked?'block':'none'"> 否</label>
+                </div>
+              </div>
+              <div class="form-group" id="childOrder" style="display:none">
+                <label class="form-label">孩次</label>
+                <select class="form-select"><option>一孩</option><option>二孩</option><option>三孩</option></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Block 2: 父母基本信息 -->
+          <div class="card section-block">
+            <div class="section-title">👨‍👩‍👧 父母基本信息</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>家长姓名</label>
+                <input class="form-input" placeholder="请输入家长姓名">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>性别</label>
+                <select class="form-select"><option>男</option><option>女</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>工作单位</label>
+                <input class="form-input" placeholder="请输入工作单位" value="苏州大学">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>工号</label>
+                <input class="form-input" placeholder="请输入工号" value="SU2021001">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>证件类型</label>
+                <select class="form-select"><option>身份证</option><option>护照</option><option>其他</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>证件号码</label>
+                <input class="form-input" placeholder="请输入证件号码">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>联系电话</label>
+                <input class="form-input" type="tel" placeholder="请输入手机号">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>学历</label>
+                <select class="form-select"><option>博士</option><option>硕士</option><option>本科</option><option>大专</option><option>其他</option></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Block 3: 配偶信息 -->
+          <div class="card section-block">
+            <div class="section-title">💑 配偶信息</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>配偶姓名</label>
+                <input class="form-input" placeholder="请输入配偶姓名">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>学历</label>
+                <select class="form-select"><option>博士</option><option>硕士</option><option>本科</option><option>大专</option><option>其他</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>联系电话</label>
+                <input class="form-input" type="tel" placeholder="请输入手机号">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>工作单位</label>
+                <input class="form-input" placeholder="请输入工作单位">
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>证件类型</label>
+                <select class="form-select"><option>身份证</option><option>护照</option><option>其他</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="required">*</span>证件号码</label>
+                <input class="form-input" placeholder="请输入证件号码">
+              </div>
+            </div>
+          </div>
+
+          <!-- Block 4: 健康信息 -->
+          <div class="card section-block">
+            <div class="section-title">🏥 幼儿健康信息</div>
+            <div id="healthFields"></div>
+            <div class="form-grid" style="margin-top:16px">
+              <div class="form-group full-width">
+                <label class="form-label"><span class="required">*</span>出生证附件</label>
+                <div class="upload-box" onclick="showToast('点击上传出生证附件')">
+                  <div class="icon">📄</div>
+                  点击上传出生证附件（JPG/PNG/PDF）
+                </div>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">其他病史</label>
+                <textarea class="form-textarea" style="max-width:600px" placeholder="如有其他疾病或健康问题，请补充说明（选填）"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Block 5: 附件上传 -->
+          <div class="card section-block">
+            <div class="section-title">📎 附件材料</div>
+            <div class="attach-grid">
+              <div class="attach-item" onclick="showToast('点击上传户口户主页')">
+                <div class="icon">📄</div>
+                <div class="name">儿童户口（户主页）</div>
+                <div class="hint"><span style="color:var(--error)">*</span> 必传，JPG/PNG/PDF</div>
+              </div>
+              <div class="attach-item" onclick="showToast('点击上传户口幼儿页')">
+                <div class="icon">📄</div>
+                <div class="name">儿童户口（幼儿页）</div>
+                <div class="hint"><span style="color:var(--error)">*</span> 必传，JPG/PNG/PDF</div>
+              </div>
+              <div class="attach-item" onclick="showToast('点击上传父母身份证')">
+                <div class="icon">📄</div>
+                <div class="name">父母身份证</div>
+                <div class="hint"><span style="color:var(--error)">*</span> 必传，JPG/PNG/PDF</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="card" style="display:flex;gap:12px;justify-content:flex-end">
+            <button class="btn btn-default" onclick="showToast('草稿已保存')">保存草稿</button>
+            <button class="btn btn-primary" onclick="submitEnroll()">提交报名</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ===== PAGE: Progress (报名进度) ===== -->
+      <div class="page" id="page-progress">
+        <div class="page-title">报名进度</div>
+        <div class="page-subtitle">张小明 · 2026年小班</div>
+
+        <div class="card" style="max-width:600px">
+          <div class="card-title">📌 审核进度</div>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot success"></div>
+              <div class="timeline-content">
+                <strong>提交报名</strong><br>
+                已提交张小明（2026年小班）的入学报名申请
+                <div class="timeline-time">2026-05-10 09:41</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot wait pulse"></div>
+              <div class="timeline-content">
+                <strong>园长审核</strong>
+                <div class="timeline-time" style="color:var(--primary);font-weight:500">等待园长审核中...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-default" onclick="switchNav('home',document.querySelector('.menu-item[data-page=home]'))" style="margin-top:8px">← 返回列表</button>
+      </div>
+
+      <!-- ===== PAGE: Bills (缴费账单) ===== -->
+      <div class="page" id="page-bills">
+        <div class="page-title">缴费账单</div>
+        <div class="page-subtitle">管理子女的缴费账单，在线完成支付</div>
+
+        <div class="bill-tabs">
+          <div class="bill-tab active" onclick="switchBillTab('pending',this)">待缴费</div>
+          <div class="bill-tab" onclick="switchBillTab('paid',this)">已缴费</div>
+        </div>
+
+        <div id="billsPending"></div>
+        <div id="billsPaid" style="display:none"></div>
+
+        <div class="empty-state" id="pendingEmpty" style="display:none">
+          <div class="icon">📭</div>
+          <p>暂无待缴费账单</p>
+          <div class="sub">审核通过后将自动生成缴费账单</div>
+        </div>
+        <div class="empty-state" id="paidEmpty" style="display:none">
+          <div class="icon">📭</div>
+          <p>暂无缴费记录</p>
+        </div>
+      </div>
+
+      <!-- ===== PAGE: Payment (支付 - PC 二维码) ===== -->
+      <div class="page" id="page-payment">
+        <div class="page-title">扫码支付</div>
+        <div class="page-subtitle" id="paymentInfo">保育费 · 张小明</div>
+
+        <div class="card" style="max-width:480px;margin:0 auto">
+          <div class="qr-area">
+            <div style="font-size:14px;color:var(--text-secondary);margin-bottom:8px">支付金额</div>
+            <div style="font-size:40px;font-weight:700;color:var(--text);margin-bottom:24px" id="payAmount">¥3,500.00</div>
+
+            <div class="qr-placeholder">
+              <div class="qr-icon">◈</div>
+              <div class="qr-label">（二维码区域）</div>
+              <div style="font-size:11px;color:var(--border)">请使用手机扫码支付</div>
+            </div>
+
+            <div class="qr-tip">
+              <span>📱</span>
+              <span>打开苏大 APP 或微信/支付宝「扫一扫」完成支付</span>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;padding:12px 16px;background:#FFF7E6;border-radius:var(--radius);font-size:13px;color:#FA8C16">
+            ⏱ 二维码有效期 30 分钟，请尽快完成支付
+          </div>
+        </div>
+
+        <div class="btn-group" style="justify-content:center;margin-top:16px">
+          <button class="btn btn-primary btn-lg" onclick="showToast('支付成功');setTimeout(()=>switchPage('payment-result'),500)">我已支付完成</button>
+          <button class="btn btn-default btn-lg" onclick="switchNav('bills',document.querySelector('.menu-item[data-page=bills]'))">取消支付</button>
+        </div>
+      </div>
+
+      <!-- ===== PAGE: Payment Result (支付结果) ===== -->
+      <div class="page" id="page-payment-result">
+        <div class="page-title">支付结果</div>
+        <div class="card" style="max-width:480px;margin:0 auto;text-align:center;padding:48px 32px">
+          <div style="font-size:64px;margin-bottom:12px">✅</div>
+          <div style="font-size:22px;font-weight:600">支付成功</div>
+          <div style="font-size:15px;color:var(--text-tertiary);margin:8px 0 20px" id="payResultAmount">保育费 ¥3,500.00</div>
+          <div style="background:#F6FFED;border-radius:var(--radius);padding:14px;font-size:14px;color:#52C41A;margin-bottom:20px">
+            发票已自动开具，可在已缴费账单中查看
+          </div>
+          <div style="font-size:14px;color:var(--text-tertiary);margin-bottom:4px">支付时间：2026-05-10 09:41:23</div>
+          <div style="font-size:14px;color:var(--text-tertiary)">支付方式：微信支付</div>
+        </div>
+        <div class="btn-group" style="justify-content:center;margin-top:8px">
+          <button class="btn btn-primary btn-lg" onclick="switchPage('bills')">返回账单</button>
+          <button class="btn btn-default btn-lg" onclick="switchNav('home',document.querySelector('.menu-item[data-page=home]'))">返回首页</button>
+        </div>
+      </div>
+
+      <!-- ===== PAGE: Archive (学生档案) ===== -->
+      <div class="page" id="page-archive">
+        <div class="page-title" id="archiveTitle">张小明 · 学生档案</div>
+        <div class="page-subtitle">档案信息来源于入学报名，仅可查看不可修改</div>
+
+        <div class="card">
+          <div class="section-title">📋 幼儿基本信息</div>
+          <div class="detail-grid">
+            <div class="detail-item"><div class="detail-label">与子女关系</div><div class="detail-value">父亲</div></div>
+            <div class="detail-item"><div class="detail-label">出生地</div><div class="detail-value">江苏苏州</div></div>
+            <div class="detail-item"><div class="detail-label">证件类型</div><div class="detail-value">身份证</div></div>
+            <div class="detail-item"><div class="detail-label">证件号码</div><div class="detail-value">3205**********1234</div></div>
+            <div class="detail-item"><div class="detail-label">国籍</div><div class="detail-value">中国</div></div>
+            <div class="detail-item"><div class="detail-label">民族</div><div class="detail-value">汉族</div></div>
+            <div class="detail-item"><div class="detail-label">籍贯</div><div class="detail-value">江苏苏州</div></div>
+            <div class="detail-item"><div class="detail-label">户口所在地</div><div class="detail-value">姑苏区XX路XX号</div></div>
+            <div class="detail-item full-width"><div class="detail-label">家庭地址</div><div class="detail-value">工业园区XX小区XX幢</div></div>
+            <div class="detail-item"><div class="detail-label">入园年份</div><div class="detail-value">2026</div></div>
+            <div class="detail-item"><div class="detail-label">是否独生</div><div class="detail-value">是</div></div>
+            <div class="detail-item"><div class="detail-label">联络邮箱</div><div class="detail-value">zhang@example.com</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">👨‍👩‍👧 父母基本信息</div>
+          <div class="detail-grid">
+            <div class="detail-item"><div class="detail-label">家长姓名</div><div class="detail-value">张建国</div></div>
+            <div class="detail-item"><div class="detail-label">性别</div><div class="detail-value">男</div></div>
+            <div class="detail-item"><div class="detail-label">工作单位</div><div class="detail-value">苏州大学</div></div>
+            <div class="detail-item"><div class="detail-label">工号</div><div class="detail-value">SU2021001</div></div>
+            <div class="detail-item"><div class="detail-label">证件类型</div><div class="detail-value">身份证</div></div>
+            <div class="detail-item"><div class="detail-label">证件号码</div><div class="detail-value">3205XXXXXXXXXXXXXX</div></div>
+            <div class="detail-item"><div class="detail-label">联系电话</div><div class="detail-value">138****5678</div></div>
+            <div class="detail-item"><div class="detail-label">学历</div><div class="detail-value">博士</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">💑 配偶信息</div>
+          <div class="detail-grid">
+            <div class="detail-item"><div class="detail-label">配偶姓名</div><div class="detail-value">李梅</div></div>
+            <div class="detail-item"><div class="detail-label">学历</div><div class="detail-value">硕士</div></div>
+            <div class="detail-item"><div class="detail-label">联系电话</div><div class="detail-value">139****1234</div></div>
+            <div class="detail-item"><div class="detail-label">工作单位</div><div class="detail-value">苏州市立医院</div></div>
+            <div class="detail-item"><div class="detail-label">证件类型</div><div class="detail-value">身份证</div></div>
+            <div class="detail-item"><div class="detail-label">证件号码</div><div class="detail-value">3205XXXXXXXXXXXXXX</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">🏥 幼儿健康信息</div>
+          <div class="detail-grid">
+            <div class="detail-item"><div class="detail-label">是否残疾</div><div class="detail-value">否</div></div>
+            <div class="detail-item"><div class="detail-label">心脏疾患</div><div class="detail-value">否</div></div>
+            <div class="detail-item"><div class="detail-label">高热抽筋</div><div class="detail-value">否</div></div>
+            <div class="detail-item"><div class="detail-label">哮喘</div><div class="detail-value">否</div></div>
+            <div class="detail-item"><div class="detail-label">习惯性脱臼</div><div class="detail-value">否</div></div>
+            <div class="detail-item"><div class="detail-label">家族遗传史</div><div class="detail-value">否</div></div>
+            <div class="detail-item"><div class="detail-label">药物食物过敏</div><div class="detail-value">否</div></div>
+            <div class="detail-item full-width"><div class="detail-label">出生证附件</div><div class="detail-value"><span style="color:var(--primary);cursor:pointer" onclick="showToast('预览出生证附件')">📄 出生证.pdf</span></div></div>
+            <div class="detail-item full-width"><div class="detail-label">其他病史</div><div class="detail-value">无</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">📎 附件材料</div>
+          <div style="display:flex;gap:12px">
+            <div style="width:100px;height:100px;background:var(--border-split);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-tertiary);cursor:pointer;flex-direction:column" onclick="showToast('预览附件')">
+              <span style="font-size:20px">📄</span>户主页
+            </div>
+            <div style="width:100px;height:100px;background:var(--border-split);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-tertiary);cursor:pointer;flex-direction:column" onclick="showToast('预览附件')">
+              <span style="font-size:20px">📄</span>幼儿页
+            </div>
+            <div style="width:100px;height:100px;background:var(--border-split);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-tertiary);cursor:pointer;flex-direction:column" onclick="showToast('预览附件')">
+              <span style="font-size:20px">📄</span>身份证
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-default" onclick="switchNav('home',document.querySelector('.menu-item[data-page=home]'))">← 返回列表</button>
+      </div>
+
+      <!-- ===== PAGE: Invoice (电子发票) ===== -->
+      <div class="page" id="page-invoice">
+        <div class="page-title">电子发票</div>
+        <div class="card invoice-card">
+          <div class="invoice-header">
+            <div style="font-size:14px;color:var(--text-tertiary)">电子发票（普通发票）</div>
+            <div class="amount" id="invoiceAmount">¥3,500.00</div>
+          </div>
+          <div class="invoice-row">
+            <span class="label">费用项目</span>
+            <span class="value" id="invFeeType">保育费</span>
+          </div>
+          <div class="invoice-row">
+            <span class="label">幼儿姓名</span>
+            <span class="value" id="invStudent">张小明</span>
+          </div>
+          <div class="invoice-row">
+            <span class="label">发票抬头</span>
+            <span class="value">张建国</span>
+          </div>
+          <div class="invoice-row">
+            <span class="label">税号</span>
+            <span class="value">—</span>
+          </div>
+          <div class="invoice-row">
+            <span class="label">开票日期</span>
+            <span class="value">2026-05-10 09:41</span>
+          </div>
+          <div class="invoice-row">
+            <span class="label">发票号码</span>
+            <span class="value">INV-20260510-001</span>
+          </div>
+          <div class="invoice-row">
+            <span class="label">校验码</span>
+            <span class="value">******</span>
+          </div>
+        </div>
+        <div class="btn-group" style="justify-content:center;margin-top:8px">
+          <button class="btn btn-primary btn-lg" onclick="showToast('正在下载 PDF')">📥 下载 PDF</button>
+          <button class="btn btn-default btn-lg" onclick="switchPage('bills')">返回账单</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <h3 id="modalTitle">绑定子女</h3>
+    <div id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<script>
+// ===== Mock Data =====
+const children = [
+  {id:1, name:'张小明', gender:'男', birth:'2021-03-15', idType:'身份证', idNo:'3205**********1234', status:'pending', statusText:'未报名', statusClass:'tag-gray'},
+  {id:2, name:'张小华', gender:'女', birth:'2020-08-20', idType:'身份证', idNo:'3205**********5678', status:'waiting', statusText:'待审核', statusClass:'tag-blue'},
+  {id:3, name:'张大宝', gender:'男', birth:'2021-01-10', idType:'护照', idNo:'E*********', status:'pass', statusText:'已通过', statusClass:'tag-green'},
+  {id:4, name:'张甜甜', gender:'女', birth:'2020-11-05', idType:'身份证', idNo:'3205**********9012', status:'rejected', statusText:'已驳回', statusClass:'tag-red'},
+  {id:5, name:'张安安', gender:'女', birth:'2019-06-12', idType:'身份证', idNo:'3205**********3456', status:'enrolled', statusText:'已入园', statusClass:'tag-green'},
+];
+
+const healthItems = [
+  {label:'是否残疾', key:'disability', hasText:false},
+  {label:'是否有心脏疾患', key:'heart', hasText:false},
+  {label:'是否高热抽筋', key:'fever', hasText:false},
+  {label:'是否有哮喘', key:'asthma', hasText:false},
+  {label:'是否习惯性脱臼', key:'dislocation', hasText:false},
+  {label:'是否有家族遗传史', key:'genetic', hasText:true},
+  {label:'是否有药物食物过敏', key:'allergy', hasText:true},
+];
+
+const billsPendingData = [
+  {student:'张小明', type:'保育费', semester:'2026年春季', amount:'3,500.00', billNo:'BILL-20260501-001', date:'2026-05-01'},
+  {student:'张小明', type:'伙食费', semester:'2026年春季', amount:'1,200.00', billNo:'BILL-20260501-002', date:'2026-05-01'},
+];
+
+const billsPaidData = [
+  {student:'张安安', type:'保育费', semester:'2025年秋季', amount:'3,200.00', billNo:'BILL-20250901-001', date:'2025-09-01', payTime:'2025-09-05 10:15', method:'微信支付'},
+  {student:'张安安', type:'伙食费', semester:'2025年秋季', amount:'1,100.00', billNo:'BILL-20250901-002', date:'2025-09-01', payTime:'2025-09-05 10:16', method:'微信支付'},
+];
+
+// ===== Enrollment Window Config =====
+// state: 'not-configured' | 'before-window' | 'in-window' | 'after-window'
+const enrollWindowConfig = {
+  state: 'in-window',
+  startDate: '2026-05-01',
+  endDate: '2026-06-30',
+};
+
+function getEnrollWindowStatus() { return enrollWindowConfig.state; }
+
+function getEnrollWindowMessage() {
+  const s = enrollWindowConfig;
+  switch (s.state) {
+    case 'not-configured': return '报名尚未开放，请等待园方设置报名时间';
+    case 'before-window': return '报名尚未开始。报名时间：' + s.startDate + ' - ' + s.endDate;
+    case 'after-window': return '报名已截止，如有疑问请联系园方';
+    default: return '';
+  }
+}
+
+function canEnroll(c) {
+  if (c.status === 'rejected') return true;
+  return getEnrollWindowStatus() === 'in-window';
+}
+
+// ===== State =====
+let isLoggedIn = false;
+
+// ===== Init =====
+function init() {
+  renderChildList();
+  renderBills();
+  renderSyncChildren();
+  renderHealthFields();
+}
+init();
+
+// ===== Login =====
+function doLogin() {
+  const id = document.getElementById('loginId').value;
+  const pwd = document.getElementById('loginPwd').value;
+  if (!id || !pwd) {
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  isLoggedIn = true;
+}
+
+// ===== Navigation =====
+function switchNav(page, el) {
+  document.querySelectorAll('.menu-item').forEach(m => { m.classList.remove('active'); });
+  if (el) el.classList.add('active');
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + page);
+  if (target) target.classList.add('active');
+
+  // Update page title
+  const titles = {home:'子女列表', bind:'绑定子女', enroll:'入学报名', progress:'报名进度', bills:'缴费账单', payment:'扫码支付', 'payment-result':'支付结果', archive:'学生档案', invoice:'电子发票'};
+  const titleEl = document.querySelector('.page.active .page-title');
+  // page-title is inside each page, no need to set separately
+}
+
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+}
+
+function switchTab(tab) {
+  if (tab === 'home') switchNav('home', document.querySelector('.menu-item[data-page=home]'));
+  else if (tab === 'bills') switchNav('bills', document.querySelector('.menu-item[data-page=bills]'));
+}
+
+// ===== Children List =====
+function renderChildList() {
+  const el = document.getElementById('childList');
+  document.getElementById('childCount').textContent = children.length;
+  el.innerHTML = children.map(c => `
+    <div class="child-card">
+      <div class="child-top">
+        <div class="child-avatar">${c.name[0]}</div>
+        <div class="child-info">
+          <div class="child-name-row">
+            <span class="child-name">${c.name}</span>
+            <span class="tag ${c.statusClass}">${c.statusText}</span>
+          </div>
+          <div class="child-meta">${c.gender} · ${c.birth}</div>
+          <div class="child-meta" style="margin-top:1px">${c.idType} ${c.idNo}</div>
+        </div>
+      </div>
+      <div class="child-action-bottom">
+        ${c.status==='pending' ? '<button class="btn btn-primary btn-sm" onclick="' + (canEnroll(c) ? 'switchNav(\'enroll\',this)' : 'showToast(\'' + getEnrollWindowMessage() + '\')') + '">去报名</button>' :
+          c.status==='waiting' ? '<button class="btn btn-sm btn-default" onclick="switchNav(\'progress\',this)">查看进度</button>' :
+          c.status==='pass' ? '<button class="btn btn-sm btn-default" onclick="switchNav(\'progress\',this)">查看进度</button>' :
+          c.status==='rejected' ? '<button class="btn btn-sm btn-danger" onclick="switchNav(\'enroll\',this)">修改报名</button>' :
+          c.status==='enrolled' ? '<div class="btn-group"><button class="btn btn-sm btn-default" onclick="switchPage(\'bills\')">查看账单</button><button class="btn btn-sm btn-default" onclick="switchNav(\'archive\',this)">档案信息</button></div>' :
+          ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== Sync Children =====
+function renderSyncChildren() {
+  const el = document.getElementById('syncChildren');
+  const syncData = [
+    {name:'张小明', idType:'身份证', idNo:'3205**********1234'},
+    {name:'张小花', idType:'身份证', idNo:'3205**********5678'},
+  ];
+  el.innerHTML = syncData.map(s => `
+    <div style="display:flex;align-items:center;padding:12px 16px;border:1px solid var(--border-split);border-radius:var(--radius);margin-bottom:8px">
+      <div style="width:40px;height:40px;border-radius:50%;background:#F6FFED;color:#52C41A;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0">${s.name[0]}</div>
+      <div style="flex:1;margin-left:12px">
+        <div style="font-weight:500">${s.name}</div>
+        <div style="font-size:12px;color:var(--text-tertiary)">${s.idType} · ${s.idNo}</div>
+      </div>
+      <button class="btn btn-sm btn-primary" onclick="showToast('已绑定 ${s.name}');this.disabled=true;this.textContent='已绑定'">确认绑定</button>
+    </div>
+  `).join('');
+}
+
+// ===== Bind Modal =====
+function openBindModal() {
+  const modal = document.getElementById('modalOverlay');
+  document.getElementById('modalTitle').textContent = '绑定子女';
+  document.getElementById('modalBody').innerHTML = `
+    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">
+      可从教职工系统自动获取子女信息，也可手动新增
+    </p>
+    <div class="btn-group" style="justify-content:center">
+      <button class="btn btn-default" style="flex:1" onclick="hideModal();switchNav('bind',document.querySelector('.menu-item[data-page=home]'))">手动新增</button>
+    </div>
+  `;
+  document.getElementById('modalActions').innerHTML = `
+    <button class="btn btn-default" onclick="hideModal()">取消</button>
+  `;
+  modal.classList.add('show');
+}
+
+function hideModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+// ===== Health Fields =====
+function renderHealthFields() {
+  const el = document.getElementById('healthFields');
+  el.innerHTML = healthItems.map(h => `
+    <div class="health-row" style="flex-wrap:wrap">
+      <span class="health-label">${h.label}</span>
+      <div class="health-options">
+        <span class="health-opt selected" onclick="selectHealth(this,'${h.key}',${h.hasText})">否</span>
+        <span class="health-opt" onclick="selectHealth(this,'${h.key}',${h.hasText})">是</span>
+      </div>
+      ${h.hasText ? `<textarea class="form-textarea health-text-${h.key}" style="display:none;margin-top:8px;width:100%;max-width:400px" placeholder="请补充说明" rows="2"></textarea>` : ''}
+    </div>
+  `).join('');
+}
+
+function selectHealth(el, key, hasText) {
+  el.parentNode.querySelectorAll('.health-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  if (hasText) {
+    const txt = document.querySelector('.health-text-' + key);
+    if (txt) txt.style.display = el.textContent === '是' ? 'block' : 'none';
+  }
+}
+
+// ===== Submit Enroll =====
+function submitEnroll() {
+  const firstRequired = document.querySelector('#enrollForm input[placeholder]');
+  if (firstRequired && !firstRequired.value) {
+    firstRequired.style.borderColor = 'var(--error)';
+    firstRequired.focus();
+    showToast('请填写必填项');
+    setTimeout(() => firstRequired.style.borderColor = '', 2000);
+    return;
+  }
+  showToast('报名提交成功！');
+  setTimeout(() => switchNav('progress', document.querySelector('.menu-item[data-page=home]')), 600);
+}
+
+// ===== Bills =====
+function renderBills() {
+  const pendEl = document.getElementById('billsPending');
+  const paidEl = document.getElementById('billsPaid');
+
+  pendEl.innerHTML = billsPendingData.map(b => `
+    <div class="bill-card">
+      <div class="bill-top">
+        <div class="bill-header">
+          <span class="bill-student">${b.student}</span>
+          <span class="bill-type">${b.type}</span>
+          <span class="bill-semester">${b.semester}</span>
+          <span style="margin-left:auto"><span class="tag tag-orange">待缴费</span></span>
+        </div>
+        <div class="bill-amount">¥${b.amount}</div>
+        <div class="bill-meta">
+          <span>📄 ${b.billNo}</span>
+          <span>📅 ${b.date}</span>
+        </div>
+      </div>
+      <div class="bill-action-bottom">
+        <button class="btn btn-primary" onclick="goPay('${b.type}','${b.amount}','${b.student}')">去支付</button>
+      </div>
+    </div>
+  `).join('');
+
+  paidEl.innerHTML = billsPaidData.map(b => `
+    <div class="bill-card">
+      <div class="bill-top">
+        <div class="bill-header">
+          <span class="bill-student">${b.student}</span>
+          <span class="bill-type">${b.type}</span>
+          <span class="bill-semester">${b.semester}</span>
+          <span style="margin-left:auto"><span class="tag tag-green">已缴费</span></span>
+        </div>
+        <div class="bill-amount">¥${b.amount}</div>
+        <div class="bill-meta">
+          <span>📄 ${b.billNo}</span>
+          <span>✅ ${b.payTime}</span>
+          <span>${b.method}</span>
+        </div>
+      </div>
+      <div class="bill-action-bottom">
+        <button class="btn btn-default" onclick="switchPage('invoice')">查看发票</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function switchBillTab(tab, el) {
+  document.querySelectorAll('.bill-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+
+  if (tab === 'pending') {
+    document.getElementById('billsPending').style.display = 'block';
+    document.getElementById('billsPaid').style.display = 'none';
+    document.getElementById('pendingEmpty').style.display = billsPendingData.length ? 'none' : 'block';
+    document.getElementById('paidEmpty').style.display = 'none';
+  } else {
+    document.getElementById('billsPending').style.display = 'none';
+    document.getElementById('billsPaid').style.display = 'block';
+    document.getElementById('pendingEmpty').style.display = 'none';
+    document.getElementById('paidEmpty').style.display = billsPaidData.length ? 'none' : 'block';
+  }
+}
+
+// ===== Pay (PC: QR Code) =====
+function goPay(type, amount, student) {
+  document.getElementById('payAmount').textContent = '¥' + amount;
+  document.getElementById('paymentInfo').textContent = type + ' · ' + student;
+  switchPage('payment');
+}
+
+// ===== Toast =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.style.display = 'none', 2000);
+}
+</script>
+</body>
+</html>

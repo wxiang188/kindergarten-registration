@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>幼儿园报名缴费系统 - 家长端 PC 重构版 v7</title>
+<style>
+:root {
+  --primary: #1677FF; --primary-hover: #4096FF; --primary-active: #0958D9; --primary-bg: #E6F4FF;
+  --success: #52C41A; --warning: #FAAD14; --error: #FF4D4F;
+  --text: rgba(0,0,0,0.88); --text-secondary: rgba(0,0,0,0.65); --text-tertiary: rgba(0,0,0,0.45);
+  --border: #D9D9D9; --border-split: #F0F0F0;
+  --bg: #F5F5F5; --bg-card: #FFF;
+  --font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC",sans-serif;
+  --radius: 6px; --radius-lg: 8px; --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --header-h: 52px; --tab-h: 52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:14px;color:var(--text);background:var(--bg);line-height:1.5;min-height:100vh}
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#E6F4FF 0%,#BAE0FF 100%)}
+.login-card{width:420px;background:#fff;border-radius:12px;padding:40px;box-shadow:0 8px 40px rgba(0,0,0,0.10)}
+.login-card h1{font-size:22px;font-weight:700;text-align:center;margin-bottom:4px}
+.login-card .sub{text-align:center;color:#999;font-size:13px;margin-bottom:32px}
+.login-card input{width:100%;height:40px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;outline:none}
+.login-card input:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-bg)}
+.login-card .login-btn{width:100%;height:42px;border:none;background:var(--primary);color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+.login-card .login-btn:hover{background:var(--primary-hover)}
+.login-card .login-footer{text-align:center;margin-top:16px;font-size:13px;color:#999}
+.login-card .login-footer a{color:var(--primary);cursor:pointer}
+header{height:var(--header-h);background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border-split);position:fixed;top:0;left:0;right:0;z-index:100}
+header .logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700}
+header .logo .logo-icon{width:32px;height:32px;background:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700}
+header .header-right{display:flex;align-items:center;gap:16px}
+header .user-info{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary)}
+header .user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+.layout{display:flex;flex-direction:column;margin-top:var(--header-h);min-height:calc(100vh - var(--header-h));padding-bottom:var(--tab-h)}
+.main-content{flex:1;padding:20px 24px}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-size:20px;font-weight:600;margin-bottom:4px}
+.page-subtitle{font-size:13px;color:var(--text-tertiary);margin-bottom:16px}
+.bottom-tabs{position:fixed;bottom:0;left:0;right:0;height:var(--tab-h);background:#fff;border-top:1px solid var(--border-split);display:flex;align-items:center;justify-content:space-around;z-index:100}
+.bottom-tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;cursor:pointer;border:none;background:transparent;font-family:var(--font);font-size:11px;color:var(--text-tertiary);flex:1}
+.bottom-tab .tab-icon{font-size:20px;line-height:1}
+.bottom-tab.active{color:var(--primary)}
+.card{background:var(--bg-card);border-radius:var(--radius-lg);padding:20px;margin-bottom:12px;border:1px solid var(--border-split)}
+.card-title{font-size:16px;font-weight:600;margin-bottom:12px}
+.child-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.child-card{background:var(--bg-card);border-radius:var(--radius-lg);padding:20px;border:1px solid var(--border-split);cursor:pointer;transition:all .2s}
+.child-card:hover{box-shadow:var(--shadow);border-color:var(--primary)}
+.child-card .child-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;margin-bottom:10px}
+.child-card .child-name{font-size:16px;font-weight:600;margin-bottom:4px}
+.child-card .child-info{font-size:13px;color:var(--text-secondary);line-height:1.8}
+.child-card .child-info span{display:inline-block;margin-right:12px}
+.record-item{border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:10px;background:var(--bg-card)}
+.record-item .record-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.record-item .record-title{font-weight:600;font-size:15px}
+.record-item .record-meta{font-size:13px;color:var(--text-secondary);margin-bottom:8px}
+.record-item .record-actions{display:flex;gap:8px}
+.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px;line-height:1.8;font-weight:500}
+.tag-gray{background:#FAFAFA;color:var(--text-secondary);border:1px solid var(--border)}
+.tag-blue{background:var(--primary-bg);color:var(--primary);border:1px solid #91CAFF}
+.tag-green{background:#F6FFED;color:#52C41A;border:1px solid #B7EB8F}
+.tag-red{background:#FFF2F0;color:#FF4D4F;border:1px solid #FFCCC7}
+.tag-orange{background:#FFF7E6;color:#FA8C16;border:1px solid #FFD591}
+.btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 16px;border-radius:var(--radius);font-size:14px;font-family:var(--font);cursor:pointer;border:1px solid transparent;transition:all .2s;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-default{background:#fff;color:var(--text);border-color:var(--border)}
+.btn-default:hover{color:var(--primary);border-color:var(--primary)}
+.btn-sm{height:28px;font-size:12px;padding:0 12px}
+.bill-card{border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:10px;background:var(--bg-card)}
+.bill-card .bill-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.bill-card .bill-student{font-weight:600}
+.bill-card .bill-type,.bill-card .bill-semester{font-size:12px;color:var(--text-tertiary)}
+.bill-card .bill-amount{font-size:20px;font-weight:700;margin:4px 0}
+.bill-card .bill-meta{font-size:12px;color:var(--text-tertiary);display:flex;gap:16px;margin-bottom:10px}
+.bill-card .bill-action-bottom{display:flex;gap:8px}
+.inner-tabs{display:flex;border-bottom:1px solid var(--border-split);margin-bottom:12px}
+.inner-tab{padding:8px 16px;font-size:14px;cursor:pointer;border:none;background:transparent;font-family:var(--font);color:var(--text-secondary);border-bottom:2px solid transparent}
+.inner-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-tertiary)}
+.empty-state .empty-icon{font-size:40px;margin-bottom:8px}
+.welcome-hint{font-size:13px;color:var(--text-tertiary);background:#FAFAFA;border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;line-height:1.8}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.80);color:#fff;padding:10px 24px;border-radius:var(--radius);font-size:14px;z-index:9999;display:none}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:13px;font-weight:500;margin-bottom:4px;color:var(--text)}
+.form-input,.form-select{width:100%;height:34px;padding:0 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:var(--font);outline:none;background:#fff}
+.form-input:focus,.form-select:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-bg)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#fff;border-radius:var(--radius-lg);width:480px;max-height:80vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border-split);font-size:16px;font-weight:600}
+.modal-body{padding:20px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;border-top:1px solid var(--border-split)}
+</style>
+</head>
+<body>
+
+<div class="login-page" id="loginPage">
+  <div class="login-card">
+    <h1>幼儿园报名缴费系统</h1>
+    <div class="sub">家长端 · 苏州大学教职工登录</div>
+    <div class="form-group"><label>工号</label><input id="loginId" type="text" placeholder="请输入工号" value="SU2021001"></div>
+    <div class="form-group"><label>密码</label><input id="loginPwd" type="password" placeholder="请输入密码" value="......"></div>
+    <button class="login-btn" onclick="doLogin()">登 录</button>
+    <div class="login-footer"><a onclick="showToast('请打开苏大 APP 扫码')">苏大 APP 扫码登录 →</a></div>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="logo"><div class="logo-icon">幼</div><span>幼儿园报名缴费系统</span></div>
+    <div class="header-right">
+      <div class="user-info"><div class="user-avatar">张</div><span>张建国 · 苏州大学</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <main class="main-content" id="mainContent">
+
+      <div class="page active" id="page-home">
+        <div class="page-title">子女列表</div>
+        <div class="page-subtitle">共 <span id="childCount">5</span> 名子女</div>
+        <div class="welcome-hint">📌 子女信息来源于教职工系统同步或报名时填写。<br>点击幼儿卡片可查看完整档案信息。</div>
+        <div id="childList"></div>
+      </div>
+
+      <div class="page" id="page-records">
+        <div class="page-title">报名记录</div>
+        <div class="page-subtitle">查看子女的报名申请记录及审核状态</div>
+        <div class="form-group" style="margin-bottom:12px">
+          <select id="recordChildSelect" class="form-select" style="max-width:240px" onchange="renderRecords()"></select>
+        </div>
+        <div id="recordList"></div>
+      </div>
+
+      <div class="page" id="page-bills">
+        <div class="page-title">缴费账单</div>
+        <div class="page-subtitle">管理子女的缴费账单，在线完成支付</div>
+        <div class="inner-tabs">
+          <button class="inner-tab active" onclick="switchBillTab('pending', this)">待缴费</button>
+          <button class="inner-tab" onclick="switchBillTab('paid', this)">已缴费</button>
+        </div>
+        <div id="billsPending"></div>
+        <div id="billsPaid" style="display:none"></div>
+      </div>
+
+      <div class="page" id="page-archive">
+        <div class="page-title">档案信息</div>
+        <div class="page-subtitle" id="archiveSubtitle"></div>
+        <div id="archiveContent"></div>
+        <button class="btn btn-default" onclick="switchBottomTab('home')" style="margin-top:8px">← 返回列表</button>
+      </div>
+
+    </main>
+  </div>
+
+  <nav class="bottom-tabs">
+    <button class="bottom-tab active" data-tab="home" onclick="switchBottomTab('home')"><span class="tab-icon">🏠</span> 子女列表</button>
+    <button class="bottom-tab" data-tab="records" onclick="switchBottomTab('records')"><span class="tab-icon">📋</span> 报名记录</button>
+    <button class="bottom-tab" data-tab="bills" onclick="switchBottomTab('bills')"><span class="tab-icon">💳</span> 缴费账单</button>
+  </nav>
+</div>
+
+<div id="toast"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-header"><span id="modalTitle">标题</span><span style="cursor:pointer;font-size:18px" onclick="hideModal()">✕</span></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalActions"><button class="btn btn-default" onclick="hideModal()">关闭</button></div>
+  </div>
+</div>
+
+<script>
+var children = [
+  {id:1, name:'张小明', gender:'男', birth:'2021-03-15', idType:'身份证', idNo:'3205**********1234', className:'小班', classYear:'2026', status:'pending'},
+  {id:2, name:'张小华', gender:'女', birth:'2020-08-20', idType:'身份证', idNo:'3205**********5678', className:'中班', classYear:'2025', status:'waiting'},
+  {id:3, name:'张大宝', gender:'男', birth:'2021-01-10', idType:'护照', idNo:'E*********', className:'小班', classYear:'2026', status:'pass'},
+  {id:4, name:'张甜甜', gender:'女', birth:'2020-11-05', idType:'身份证', idNo:'3205**********9012', className:'小班', classYear:'2026', status:'rejected'},
+  {id:5, name:'张安安', gender:'女', birth:'2019-06-12', idType:'身份证', idNo:'3205**********3456', className:'大班', classYear:'2024', status:'enrolled'}
+];
+
+var sc = {
+  pending:{text:'未报名', cls:'tag-gray'},
+  waiting:{text:'待审核', cls:'tag-blue'},
+  pass:{text:'已通过', cls:'tag-green'},
+  rejected:{text:'已驳回', cls:'tag-red'},
+  enrolled:{text:'已入园', cls:'tag-green'}
+};
+
+var enrollRecords = {
+  1: [{year:'2026', semester:'秋季', className:'小班', submitDate:'2026-05-04 14:30', status:'pass', reason:''}],
+  2: [{year:'2025', semester:'秋季', className:'中班', submitDate:'2025-04-20 10:15', status:'enrolled', reason:''}],
+  3: [{year:'2026', semester:'秋季', className:'小班', submitDate:'2026-05-03 09:20', status:'pass', reason:''}],
+  4: [{year:'2026', semester:'秋季', className:'小班', submitDate:'2026-04-28 16:00', status:'rejected', reason:'附件材料不清晰，请重新上传户口本照片'}],
+  5: [{year:'2024', semester:'秋季', className:'大班', submitDate:'2024-05-10 11:00', status:'enrolled', reason:''},
+      {year:'2025', semester:'秋季', className:'大班', submitDate:'2025-04-18 14:20', status:'enrolled', reason:''}]
+};
+
+var bpd = [
+  {student:'张小明', type:'保育费', semester:'2026年春季', amount:'3,500.00', billNo:'BILL-20260501-001', date:'2026-05-01'},
+  {student:'张小明', type:'伙食费', semester:'2026年春季', amount:'1,200.00', billNo:'BILL-20260501-002', date:'2026-05-01'}
+];
+var bpd2 = [
+  {student:'张安安', type:'保育费', semester:'2025年秋季', amount:'3,200.00', billNo:'BILL-20250901-001', date:'2025-09-01', payTime:'2025-09-05 10:15', method:'微信支付'},
+  {student:'张安安', type:'伙食费', semester:'2025年秋季', amount:'1,100.00', billNo:'BILL-20250901-002', date:'2025-09-01', payTime:'2025-09-05 10:16', method:'微信支付'}
+];
+
+function doLogin() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  init();
+}
+
+function switchBottomTab(tab) {
+  var t = document.querySelectorAll('.bottom-tab');
+  for (var i = 0; i < t.length; i++) t[i].classList.remove('active');
+  document.querySelector('.bottom-tab[data-tab="' + tab + '"]').classList.add('active');
+  var p = document.querySelectorAll('.page');
+  for (var i = 0; i < p.length; i++) p[i].classList.remove('active');
+  document.getElementById('page-' + tab).classList.add('active');
+}
+
+function init() {
+  renderChildList();
+  renderRecords();
+  renderBills();
+}
+
+function gs(s) {
+  var c = sc[s] || {text:s, cls:'tag-gray'};
+  return '<span class="tag ' + c.cls + '">' + c.text + '</span>';
+}
+
+function renderChildList() {
+  var el = document.getElementById('childList');
+  document.getElementById('childCount').textContent = children.length;
+  var h = '<div class="child-cards">';
+  for (var i = 0; i < children.length; i++) {
+    var c = children[i];
+    h += '<div class="child-card" onclick="showArchive(' + c.id + ')">'
+      + '<div class="child-avatar">' + c.name[0] + '</div>'
+      + '<div class="child-name">' + c.name + ' ' + gs(c.status) + '</div>'
+      + '<div class="child-info"><span>' + c.className + '</span><span>' + c.gender + ' · ' + c.birth + '</span></div>'
+      + '<div class="child-info"><span>' + c.idType + ': ' + c.idNo + '</span></div>'
+      + '<div style="margin-top:10px">'
+      + '<button class="btn btn-sm btn-default" onclick="event.stopPropagation();showArchive(' + c.id + ')">📄 档案信息</button>'
+      + '</div></div>';
+  }
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+function findChild(id) {
+  for (var i = 0; i < children.length; i++) if (children[i].id === id) return children[i];
+  return null;
+}
+
+function showArchive(childId) {
+  var c = findChild(childId);
+  if (!c) return;
+  var p = document.querySelectorAll('.page');
+  for (var i = 0; i < p.length; i++) p[i].classList.remove('active');
+  document.getElementById('page-archive').classList.add('active');
+  document.getElementById('archiveSubtitle').textContent = c.name + ' · 档案信息来源于入学报名，仅可查看不可修改';
+
+  var fields = [
+    {l:'幼儿姓名',v:c.name},{l:'性别',v:c.gender},{l:'出生日期',v:c.birth},
+    {l:'证件类型',v:c.idType},{l:'证件号码',v:c.idNo},{l:'班级',v:c.className},
+    {l:'入园年份',v:c.classYear},{l:'与子女关系',v:'母亲'},
+    {l:'出生地',v:'江苏省苏州市'},{l:'国籍',v:'中国'},{l:'民族',v:'汉族'},
+    {l:'籍贯',v:'江苏省苏州市'},{l:'户口所在地',v:'江苏省苏州市'},
+    {l:'家庭常驻地址',v:'苏州工业园区'},{l:'联络邮箱',v:'zhang@example.com'},
+    {l:'父亲姓名',v:'张建国'},{l:'父亲手机',v:'138****8888'},
+    {l:'母亲姓名',v:'李秀丽'},{l:'母亲手机',v:'139****6666'}
+  ];
+  var h = '<div class="card"><div class="card-title">基本信息</div><div class="form-grid">';
+  for (var i = 0; i < fields.length; i++) {
+    h += '<div><div class="form-label">' + fields[i].l + '</div><div style="padding:6px 0;color:var(--text-secondary)">' + (fields[i].v || '—') + '</div></div>';
+  }
+  h += '</div></div><div class="card"><div class="card-title">健康信息</div><div class="form-grid">';
+  var hl = [
+    {l:'是否残疾',v:'否'},{l:'心脏疾患',v:'否'},{l:'高热抽筋',v:'否'},
+    {l:'哮喘',v:'否'},{l:'习惯性脱臼',v:'否'},{l:'家族遗传史',v:'否'},
+    {l:'药物食物过敏',v:'是：青霉素过敏'},{l:'其他病史',v:'无'}
+  ];
+  for (var i = 0; i < hl.length; i++) {
+    h += '<div><div class="form-label">' + hl[i].l + '</div><div style="padding:6px 0;color:var(--text-secondary)">' + hl[i].v + '</div></div>';
+  }
+  h += '</div></div><div class="card"><div class="card-title">附件材料</div><div style="display:flex;gap:12px;flex-wrap:wrap">';
+  h += '<div style="width:120px;height:90px;background:#F5F5F5;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-tertiary)">📄 户口本</div>';
+  h += '<div style="width:120px;height:90px;background:#F5F5F5;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-tertiary)">📄 身份证</div>';
+  h += '</div></div>';
+  document.getElementById('archiveContent').innerHTML = h;
+}
+
+function renderRecords() {
+  var sel = document.getElementById('recordChildSelect');
+  var opts = '';
+  for (var i = 0; i < children.length; i++) {
+    opts += '<option value="' + children[i].id + '">' + children[i].name + ' (' + children[i].className + ')</option>';
+  }
+  sel.innerHTML = opts;
+  var cid = parseInt(sel.value);
+  var records = enrollRecords[cid] || [];
+  var child = findChild(cid);
+  var el = document.getElementById('recordList');
+  if (records.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>暂无报名记录</div>';
+    return;
+  }
+  var h = '';
+  for (var i = 0; i < records.length; i++) {
+    var r = records[i];
+    var s = sc[r.status] || {text:r.status, cls:'tag-gray'};
+    var actions = '';
+    if (r.status === 'pending' || r.status === 'rejected') {
+      actions += '<button class="btn btn-sm btn-primary" onclick="showToast(\'' + child.name + '\')">去报名</button> ';
+    }
+    if (r.status === 'waiting' || r.status === 'pass') {
+      actions += '<button class="btn btn-sm btn-default" onclick="showToast(\'查看进度\')">查看进度</button> ';
+    }
+    if (r.status === 'enrolled') {
+      actions += '<button class="btn btn-sm btn-default" onclick="showToast(\'查看详情\')">查看详情</button> ';
+      actions += '<button class="btn btn-sm btn-default" onclick="switchBottomTab(\'bills\')">缴费账单</button>';
+    }
+    var rn = '';
+    if (r.status === 'rejected' && r.reason) {
+      rn = '<div style="background:#FFF2F0;border-radius:var(--radius);padding:8px 12px;font-size:13px;color:var(--error);margin-bottom:8px">驳回原因：' + r.reason + '</div>';
+    }
+    h += '<div class="record-item"><div class="record-header"><span class="record-title">' + r.year + '年' + r.semester + '入学报名</span><span class="tag ' + s.cls + '">' + s.text + '</span></div><div class="record-meta">' + child.name + ' · ' + r.className + ' · 提交时间：' + r.submitDate + '</div>' + rn + '<div class="record-actions">' + actions + '</div></div>';
+  }
+  el.innerHTML = h;
+}
+
+function renderBills() {
+  var pe = document.getElementById('billsPending');
+  var pa = document.getElementById('billsPaid');
+  var h1 = '', h2 = '';
+  for (var i = 0; i < bpd.length; i++) {
+    var b = bpd[i];
+    h1 += '<div class="bill-card"><div class="bill-header"><span class="bill-student">' + b.student + '</span><span class="bill-type">' + b.type + '</span><span class="bill-semester">' + b.semester + '</span><span style="margin-left:auto"><span class="tag tag-orange">待缴费</span></span></div><div class="bill-amount">¥' + b.amount + '</div><div class="bill-meta"><span>📄 ' + b.billNo + '</span><span>📅 ' + b.date + '</span></div><div class="bill-action-bottom"><button class="btn btn-primary" onclick="showToast(\'跳转支付\')">去支付</button></div></div>';
+  }
+  for (var i = 0; i < bpd2.length; i++) {
+    var b = bpd2[i];
+    h2 += '<div class="bill-card"><div class="bill-header"><span class="bill-student">' + b.student + '</span><span class="bill-type">' + b.type + '</span><span class="bill-semester">' + b.semester + '</span><span style="margin-left:auto"><span class="tag tag-green">已缴费</span></span></div><div class="bill-amount">¥' + b.amount + '</div><div class="bill-meta"><span>📄 ' + b.billNo + '</span><span>📅 ' + b.date + '</span><span>💳 ' + b.method + '</span><span>⏱ ' + b.payTime + '</span></div><div class="bill-action-bottom"><button class="btn btn-sm btn-default" onclick="showToast(\'查看电子发票\')">查看发票</button></div></div>';
+  }
+  pe.innerHTML = h1;
+  pa.innerHTML = h2;
+}
+
+function switchBillTab(tab, el) {
+  var t = document.querySelectorAll('.inner-tab');
+  for (var i = 0; i < t.length; i++) t[i].classList.remove('active');
+  if (el) el.classList.add('active');
+  document.getElementById('billsPending').style.display = tab === 'pending' ? 'block' : 'none';
+  document.getElementById('billsPaid').style.display = tab === 'paid' ? 'block' : 'none';
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.display = 'none'; }, 2000);
+}
+
+function hideModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+</script>
+</body>
+</html>

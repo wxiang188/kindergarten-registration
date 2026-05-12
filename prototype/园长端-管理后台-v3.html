@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>幼儿园报名缴费系统 - 园长端管理后台</title>
+<style>
+:root {
+    --primary: #1677FF; --primary-hover: #4096FF; --primary-active: #0958D9; --primary-bg: #E6F4FF;
+    --success: #52C41A; --warning: #FAAD14; --error: #FF4D4F;
+    --text-primary: rgba(0,0,0,0.88); --text-secondary: rgba(0,0,0,0.65); --text-tertiary: rgba(0,0,0,0.45);
+    --border: #D9D9D9; --border-split: #F0F0F0; --bg-container: #FFF; --bg-layout: #F5F5F5;
+    --font: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans SC',sans-serif;
+    --radius: 6px; --radius-lg: 8px; --shadow: 0 6px 16px rgba(0,0,0,0.08);
+    --header-h: 48px; --sider-w: 220px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:14px;color:var(--text-primary);background:var(--bg-layout);line-height:1.5714}
+/* === Admin Header === */
+header{height:var(--header-h);background:#001529;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:fixed;top:0;left:0;right:0;z-index:100}
+header .logo{display:flex;align-items:center;gap:8px;color:#fff;font-size:16px;font-weight:600}
+header .logo svg{width:24px;height:24px}
+header .header-right{display:flex;align-items:center;gap:16px;color:rgba(255,255,255,0.85)}
+header .user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
+header .role-switch{color:rgba(255,255,255,0.65);font-size:13px;cursor:pointer;padding:4px 12px;border-radius:4px;border:1px solid rgba(255,255,255,0.25);position:relative}
+header .role-dropdown{position:absolute;top:36px;right:0;background:#fff;color:var(--text-primary);border-radius:var(--radius);box-shadow:var(--shadow);min-width:120px;display:none;padding:4px 0}
+header .role-dropdown.show{display:block}
+header .role-dropdown .opt{padding:8px 16px;cursor:pointer;font-size:13px}
+header .role-dropdown .opt:hover{background:var(--primary-bg);color:var(--primary)}
+header .role-dropdown .opt.active{color:var(--primary);font-weight:600}
+/* === Admin Sider === */
+.layout{display:flex;margin-top:var(--header-h);min-height:calc(100vh - var(--header-h))}
+.sider{width:var(--sider-w);background:#001529;padding-top:8px;flex-shrink:0;overflow-y:auto;position:fixed;top:var(--header-h);bottom:0;left:0}
+.sider .menu-group{margin-bottom:4px}
+.sider .menu-group-title{color:rgba(255,255,255,0.35);font-size:12px;padding:12px 24px 4px;text-transform:uppercase;letter-spacing:1px}
+.sider .menu-item{display:flex;align-items:center;gap:10px;padding:10px 24px;color:rgba(255,255,255,0.65);font-size:14px;cursor:pointer;transition:all 0.2s;border-left:3px solid transparent}
+.sider .menu-item:hover{color:#fff;background:rgba(255,255,255,0.04)}
+.sider .menu-item.active{color:#fff;background:var(--primary);border-left-color:#fff}
+/* === Content === */
+.main-content{margin-left:var(--sider-w);flex:1;padding:24px;background:var(--bg-layout);min-height:calc(100vh - var(--header-h))}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-size:20px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.breadcrumb{font-size:14px;color:var(--text-tertiary);margin-bottom:16px}
+.breadcrumb span{cursor:pointer}
+.breadcrumb span:hover{color:var(--primary)}
+.breadcrumb .sep{margin:0 8px;color:var(--text-quaternary)}
+.breadcrumb .current{color:var(--text-primary)}
+/* === Cards === */
+.card{background:var(--bg-container);border-radius:var(--radius-lg);padding:24px;margin-bottom:16px}
+.card-title{font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.stat-card{background:var(--bg-container);border-radius:var(--radius-lg);padding:20px 24px}
+.stat-card .label{font-size:14px;color:var(--text-secondary);margin-bottom:8px}
+.stat-card .value{font-size:28px;font-weight:600;color:var(--text-primary)}
+.stat-card .sub{font-size:12px;color:var(--text-tertiary);margin-top:4px}
+/* === Search === */
+.search-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:16px}
+.search-item{display:flex;flex-direction:column;gap:4px}
+.search-item label{font-size:13px;color:var(--text-secondary)}
+.search-item input,.search-item select{height:32px;border:1px solid var(--border);border-radius:var(--radius);padding:0 11px;font-size:14px;font-family:var(--font);min-width:160px}
+.search-item input:focus,.search-item select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(22,119,255,0.1)}
+/* === Buttons === */
+.btn{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 15px;border-radius:var(--radius);font-size:14px;font-family:var(--font);cursor:pointer;border:1px solid transparent;transition:all 0.2s;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-default{background:#fff;color:var(--text-primary);border-color:var(--border)}
+.btn-default:hover{color:var(--primary);border-color:var(--primary)}
+.btn-danger{background:#fff;color:var(--error);border-color:var(--error)}
+.btn-danger:hover{background:var(--error);color:#fff}
+.btn-text{background:transparent;border:none;color:var(--primary);padding:0 8px}
+.btn-sm{height:26px;font-size:12px;padding:0 10px}
+.btn-lg{height:40px;padding:0 24px;font-size:16px}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-group{display:flex;gap:8px}
+/* === Table === */
+table{width:100%;border-collapse:collapse}
+th{background:#FAFAFA;padding:12px 16px;text-align:left;font-weight:600;font-size:14px;color:var(--text-primary);border-bottom:1px solid var(--border-split)}
+td{padding:12px 16px;border-bottom:1px solid var(--border-split);font-size:14px}
+tr:hover td{background:#FAFAFA}
+tr.selected td{background:var(--primary-bg)}
+.actions a{color:var(--primary);text-decoration:none;cursor:pointer;font-size:13px}
+.actions a:hover{color:var(--primary-hover)}
+.actions a.danger{color:var(--error)}
+.actions .divider{color:var(--border);margin:0 4px}
+/* === Tags === */
+.tag{display:inline-block;height:22px;line-height:22px;padding:0 7px;border-radius:4px;font-size:12px;border:1px solid}
+.tag-blue{background:var(--primary-bg);border-color:#91CAFF;color:var(--primary)}
+.tag-green{background:#F6FFED;border-color:#B7EB8F;color:#52C41A}
+.tag-orange{background:#FFF7E6;border-color:#FFD591;color:#FA8C16}
+.tag-red{background:#FFF2F0;border-color:#FFCCC7;color:#FF4D4F}
+.tag-gray{background:#FAFAFA;border-color:#D9D9D9;color:var(--text-secondary)}
+/* === Forms === */
+.form-item{margin-bottom:20px;display:flex;align-items:flex-start}
+.form-label{width:120px;text-align:right;padding-right:12px;line-height:32px;font-size:14px;color:var(--text-primary);flex-shrink:0}
+.form-label.required::before{content:'*';color:var(--error);margin-right:4px}
+.form-control{flex:1}
+.form-input,.form-select,.form-textarea{width:100%;max-width:400px;height:32px;border:1px solid var(--border);border-radius:var(--radius);padding:0 11px;font-size:14px;font-family:var(--font)}
+.form-textarea{height:80px;resize:vertical;padding:8px 11px}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(22,119,255,0.1)}
+.form-error .form-input,.form-error .form-select{border-color:var(--error)}
+.form-error .error-text{color:var(--error);font-size:12px;margin-top:4px}
+.radio-group{display:flex;gap:16px;line-height:32px}
+.radio-group label{display:flex;align-items:center;gap:4px;cursor:pointer}
+.upload-area{width:104px;height:104px;border:1px dashed var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:28px;color:var(--text-tertiary)}
+.upload-area:hover{border-color:var(--primary);color:var(--primary)}
+/* === Modal === */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:210;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow);width:520px;max-height:80vh;overflow-y:auto}
+.modal-header{padding:16px 24px;border-bottom:1px solid var(--border-split);display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:600}
+.modal-close{cursor:pointer;font-size:20px;color:var(--text-tertiary)}
+.modal-body{padding:24px}
+.modal-footer{padding:10px 16px;border-top:1px solid var(--border-split);display:flex;justify-content:flex-end;gap:8px}
+/* === Drawer === */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:none}
+.drawer-overlay.show{display:block}
+.drawer{position:fixed;top:0;right:0;width:480px;min-width:320px;max-width:90vw;height:100%;background:#fff;z-index:201;box-shadow:-6px 0 16px rgba(0,0,0,0.08);overflow-y:auto;transform:translateX(100%);transition:transform 0.3s}
+.drawer.open{transform:translateX(0)}
+.drawer.resizing{transition:none!important;user-select:none}
+.drawer-header{padding:16px 24px;border-bottom:1px solid var(--border-split);display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:600}
+.drawer-body{padding:24px}
+.drawer-footer{padding:10px 16px;border-top:1px solid var(--border-split);display:flex;justify-content:flex-end;gap:8px}
+.drawer-resize-handle{position:absolute;top:0;left:0;width:6px;height:100%;cursor:ew-resize;background:transparent;z-index:10}
+.drawer-resize-handle:hover,.drawer-resize-handle:active{background:var(--primary);opacity:0.6}
+/* === Toast === */
+#toast-container{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px}
+.toast{padding:10px 20px;border-radius:var(--radius-lg);box-shadow:var(--shadow);font-size:14px;animation:fadeIn 0.3s}
+.toast.success{background:#F6FFED;border:1px solid #B7EB8F;color:#52C41A}
+.toast.error{background:#FFF2F0;border:1px solid #FFCCC7;color:#FF4D4F}
+.toast.info{background:var(--primary-bg);border:1px solid #91CAFF;color:var(--primary)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+/* === Pagination === */
+.pagination{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;font-size:14px;color:var(--text-secondary)}
+.pagination .pages{display:flex;gap:4px}
+.pagination .page-num{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius);cursor:pointer;border:1px solid var(--border)}
+.pagination .page-num.active{border-color:var(--primary);color:var(--primary)}
+.pagination .page-num:hover{border-color:var(--primary)}
+.pagination .page-divider{color:var(--border)}
+.pagination .page-goto{display:flex;align-items:center;gap:4px}
+.pagination .page-goto input{width:56px;height:28px;border:1px solid var(--border);border-radius:var(--radius);padding:0 6px;text-align:center;font-size:13px}
+.pagination .page-goto input:focus{outline:none;border-color:var(--primary)}
+.table-actions{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+/* === Empty state === */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-tertiary)}
+.empty-state .icon{font-size:48px;margin-bottom:16px;opacity:0.3}
+/* === Timeline === */
+.timeline{padding-left:24px;border-left:2px solid var(--border-split)}
+.timeline-item{padding:8px 0 8px 20px;position:relative}
+.timeline-item::before{content:'';position:absolute;left:-29px;top:12px;width:12px;height:12px;border-radius:50%;background:var(--border);border:2px solid #fff}
+.timeline-item.done::before{background:var(--success)}
+.timeline-item.active::before{background:var(--primary);box-shadow:0 0 0 4px rgba(22,119,255,0.2);animation:pulse 2s infinite}
+.timeline-item.fail::before{background:var(--error)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(22,119,255,0.2)}50%{box-shadow:0 0 0 8px rgba(22,119,255,0.1)}}
+/* Tabs */
+.tabs{display:flex;border-bottom:2px solid var(--border-split);margin-bottom:16px}
+.tab-item{padding:8px 16px;cursor:pointer;font-size:14px;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab-item.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- ========== ADMIN HEADER ========== -->
+<header id="admin-header">
+    <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="1" width="18" height="22" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="18" x2="12" y2="18"/></svg>
+        幼儿园报名缴费系统
+    </div>
+    <div class="header-right">
+        <div style="color:rgba(255,255,255,0.85);font-size:13px"><b>园长 (PC后台)</b></div>
+        <div class="user-avatar" id="user-avatar">园</div>
+    </div>
+</header>
+
+<!-- ========== ADMIN LAYOUT ========== -->
+<div class="layout" id="admin-layout">
+    <aside class="sider" id="admin-sider">
+        <div class="menu-group">
+            <div class="menu-group-title">报名管理</div>
+            <div class="menu-item active" data-page="review-list" onclick="navTo('review-list')">📋 入学报名审核</div>
+            <div class="menu-item" data-page="student-archive" onclick="navTo('student-archive')">👨‍🎓 学生档案管理</div>
+        </div>
+        <div class="menu-group">
+            <div class="menu-group-title">财务管理</div>
+            <div class="menu-item" data-page="payment-manage" onclick="navTo('payment-manage')">💰 收费管理</div>
+            <div class="menu-item" data-page="bill-info" onclick="navTo('bill-info')">📊 流水明细</div>
+            <div class="menu-item" data-page="invoice-manage" onclick="navTo('invoice-manage')">🧾 开票管理</div>
+        </div>
+        <div class="menu-group">
+            <div class="menu-group-title">系统设置</div>
+            <div class="menu-item" data-page="semester-manage" onclick="navTo('semester-manage')">📅 学期管理</div>
+            <div class="menu-item" data-page="fee-settings" onclick="navTo('fee-settings')">💰 费用设置</div>
+            <div class="menu-item" data-page="enroll-window" onclick="navTo('enroll-window')">⏰ 报名时间设置</div>
+        </div>
+    </aside>
+    <main class="main-content" id="admin-content"></main>
+</div>
+
+<!-- H5 layout removed -->
+<!-- ========== MODAL & DRAWER ========== -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="modal-box">
+        <div class="modal-header"><span class="modal-title" id="modal-title"></span><span class="modal-close" onclick="closeModal()">&times;</span></div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-footer" id="modal-footer"></div>
+    </div>
+</div>
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer-box">
+    <div class="drawer-resize-handle" id="drawer-resize-handle"></div>
+    <div class="drawer-header"><span id="drawer-title"></span><span style="cursor:pointer;font-size:20px" onclick="closeDrawer()">&times;</span></div>
+    <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-footer" id="drawer-footer"></div>
+</div>
+<div id="toast-container"></div>
+
+<script>
+// ========== GLOBAL STATE ==========
+let currentRole = 'principal';
+
+// ========== ADMIN NAVIGATION ==========
+function navTo(pageId){
+    document.querySelectorAll('#admin-sider .menu-item').forEach(m=>m.classList.remove('active'));
+    const menuItem = document.querySelector(`[data-page="${pageId}"]`);
+    if(menuItem) menuItem.classList.add('active');
+    document.getElementById('admin-content').innerHTML = renderAdminPage(pageId);
+}
+
+// ========== MODAL / DRAWER ==========
+function openModal(title, bodyHtml, footerHtml){
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = bodyHtml;
+    document.getElementById('modal-footer').innerHTML = footerHtml || '<button class="btn btn-default" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();toast(\'操作成功\',\'success\')">确认</button>';
+    document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show')}
+function openDrawer(title, bodyHtml, footerHtml){
+    document.getElementById('drawer-title').textContent = title;
+    document.getElementById('drawer-body').innerHTML = bodyHtml;
+    document.getElementById('drawer-footer').innerHTML = footerHtml || '<button class="btn btn-default" onclick="closeDrawer()">取消</button><button class="btn btn-primary" onclick="closeDrawer();toast(\'操作成功\',\'success\')">确认</button>';
+    document.getElementById('drawer-overlay').classList.add('show');
+    document.getElementById('drawer-box').classList.add('open');
+}
+function closeDrawer(){
+    document.getElementById('drawer-overlay').classList.remove('show');
+    document.getElementById('drawer-box').classList.remove('open');
+}
+
+// ========== DRAWER RESIZE ==========
+(function(){
+    const handle = document.getElementById('drawer-resize-handle');
+    const drawer = document.getElementById('drawer-box');
+    let startX, startW;
+    function onStart(e){
+        startX = e.clientX;
+        startW = drawer.offsetWidth;
+        drawer.classList.add('resizing');
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        e.preventDefault();
+    }
+    function onMove(e){
+        const w = startW - (e.clientX - startX);
+        drawer.style.width = Math.max(320, Math.min(window.innerWidth*0.9, w)) + 'px';
+    }
+    function onEnd(){
+        drawer.classList.remove('resizing');
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onEnd);
+    }
+    handle.addEventListener('mousedown', onStart);
+})();
+
+// ========== TOAST ==========
+function toast(msg, type){
+    type = type || 'info';
+    const el = document.createElement('div'); el.className = 'toast '+type; el.textContent = msg;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(()=>el.remove(), 2500);
+}
+
+// ========== ADMIN PAGE RENDERERS ==========
+function tHead(cols){return '<thead><tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead>'}
+function tag(s,l){const m={蓝:'blue',绿:'green',橙:'orange',红:'red',灰:'gray',黄:'orange'};return `<span class="tag tag-${m[l]||'gray'}">${s}</span>`}
+
+function renderAdminPage(id){
+    switch(id){
+        case 'review-list': return renderReviewList();
+        case 'student-archive': return renderStudentArchive();
+        case 'payment-manage': return renderPaymentManage();
+        case 'bill-info': return renderBillInfo();
+        case 'invoice-manage': return renderInvoiceManage();
+        case 'semester-manage': return renderSemesterManage();
+        case 'fee-settings': return renderFeeSettings();
+        case 'enroll-window': return renderEnrollWindow();
+        default: return '<div class="empty-state"><div class="icon">🚧</div>功能开发中</div>';
+    }
+}
+
+// -- 报名审核 --
+function renderReviewList(){
+    let h=`<div class="page-title">入学报名审核</div>`;
+    h+=`<div class="card"><div class="search-bar" style="gap:12px">
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap;font-size:13px">幼儿姓名</label><input placeholder="模糊搜索" style="width:130px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap;font-size:13px">入园年份</label><select style="width:90px"><option>全部</option><option>2026</option><option>2025</option><option>2024</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap;font-size:13px">出生日期</label><input type="date" style="width:130px"> <span style="color:var(--text-tertiary)">—</span> <input type="date" style="width:130px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap;font-size:13px">申请人姓名</label><input placeholder="模糊搜索" style="width:120px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap;font-size:13px">审核结果</label><select style="width:100px"><option>全部</option><option>待审核</option><option>已通过</option><option>已驳回</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap;font-size:13px">申请时间</label><input type="date" style="width:130px"> <span style="color:var(--text-tertiary)">—</span> <input type="date" style="width:130px"></div>
+        <button class="btn btn-primary btn-sm">搜索</button>
+        <button class="btn btn-default btn-sm">重置</button>
+    </div></div>`;
+    const cols = ['申请日期','幼儿姓名','幼儿性别','出生地','出生日期','证件类型','证件号','国籍','民族','籍贯','户口所在地','家庭常驻地址','入园年份','操作'];
+    const data = [
+        {d:'2026-05-03',n:'张小明',g:'男',b:'苏州市',birth:'2021-03-15',idType:'身份证',idNo:'3205**********1234',nat:'中国',eth:'汉族',ori:'江苏苏州',reg:'苏州市姑苏区XX路XX号',addr:'苏州市工业园区XX小区XX幢',y:'2026',s:'待审核'},
+        {d:'2026-05-03',n:'李小芳',g:'女',b:'南京市',birth:'2021-07-22',idType:'身份证',idNo:'3201**********5678',nat:'中国',eth:'汉族',ori:'江苏南京',reg:'南京市鼓楼区XX路XX号',addr:'南京市江宁区XX小区XX幢',y:'2026',s:'待审核'},
+        {d:'2026-05-02',n:'王浩然',g:'男',b:'无锡市',birth:'2021-01-10',idType:'身份证',idNo:'3202**********9012',nat:'中国',eth:'汉族',ori:'江苏无锡',reg:'无锡市滨湖区XX路XX号',addr:'无锡市新吴区XX小区XX幢',y:'2025',s:'已通过'}
+    ];
+    h+=`<div class="card" style="overflow-x:auto"><table style="min-width:1600px">${tHead(cols)}
+        <tbody>${data.map(r=>`<tr>
+            <td>${r.d}</td><td>${r.n}</td><td>${r.g}</td><td>${r.b}</td><td>${r.birth}</td>
+            <td>${r.idType}</td><td>${r.idNo}</td><td>${r.nat}</td><td>${r.eth}</td>
+            <td>${r.ori}</td><td>${r.reg}</td><td>${r.addr}</td><td>${r.y}</td>
+            <td class="actions"><a href="#" onclick="event.preventDefault();viewReview('${r.n}')">查看详情</a></td>
+        </tr>`).join('')}
+    </tbody></table>
+        <div class="pagination"><span>共 1 页</span><span class="page-divider">|</span><span>20 条/页</span><div class="pages"><span class="page-num active">1</span></div><span class="page-goto">前往 <input type="number" min="1" max="1" value="1" style="width:56px;height:28px;border:1px solid var(--border);border-radius:var(--radius);padding:0 6px;text-align:center;font-size:13px"> 页</span></div>
+    </div>`;
+    return h;
+}
+
+function viewReview(name){
+    openDrawer('报名详情 — '+name,
+    `    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">📋 幼儿基本信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px"><div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">幼儿姓名：</span><span style="margin-left:8px;font-size:14px">${name}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">性别：</span><span style="margin-left:8px;font-size:14px">男</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">出生日期：</span><span style="margin-left:8px;font-size:14px">2021-03-15</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">出生地：</span><span style="margin-left:8px;font-size:14px">苏州市</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">与子女关系：</span><span style="margin-left:8px;font-size:14px">父亲</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件类型：</span><span style="margin-left:8px;font-size:14px">身份证</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件号：</span><span style="margin-left:8px;font-size:14px">3205XXXXXXXXXXXXXX</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">国籍：</span><span style="margin-left:8px;font-size:14px">中国</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">民族：</span><span style="margin-left:8px;font-size:14px">汉族</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">籍贯：</span><span style="margin-left:8px;font-size:14px">江苏苏州</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">户口所在地：</span><span style="margin-left:8px;font-size:14px">苏州市姑苏区XX路XX号</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">家庭常驻地址：</span><span style="margin-left:8px;font-size:14px">苏州市工业园区XX小区XX幢</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">入园年份：</span><span style="margin-left:8px;font-size:14px">2026</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">联络邮箱：</span><span style="margin-left:8px;font-size:14px">zhang@example.com</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否独生：</span><span style="margin-left:8px;font-size:14px">是</span></div>
+
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:flex-start;gap:12px"><span style="color:var(--text-secondary);font-size:13px">幼儿照片：</span><div style="width:80px;height:100px;background:#FAFAFA;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);text-align:center">照片<br/>缩略图</div></div>
+    </div>    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">👨‍👩‍👧 父母基本信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px"><div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">家长姓名：</span><span style="margin-left:8px;font-size:14px">张建国</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">性别：</span><span style="margin-left:8px;font-size:14px">男</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">工作单位：</span><span style="margin-left:8px;font-size:14px">苏州大学</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">工号：</span><span style="margin-left:8px;font-size:14px">SU2021001</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件类型：</span><span style="margin-left:8px;font-size:14px">身份证</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件号：</span><span style="margin-left:8px;font-size:14px">3205XXXXXXXXXXXXXX</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">联系电话：</span><span style="margin-left:8px;font-size:14px">138****5678</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">学历：</span><span style="margin-left:8px;font-size:14px">博士</span></div>
+
+        </div>
+    </div>    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">💑 配偶信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px"><div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">配偶姓名：</span><span style="margin-left:8px;font-size:14px">李梅</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">学历：</span><span style="margin-left:8px;font-size:14px">硕士</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">联系电话：</span><span style="margin-left:8px;font-size:14px">139****1234</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">工作单位：</span><span style="margin-left:8px;font-size:14px">苏州市立医院</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件类型：</span><span style="margin-left:8px;font-size:14px">身份证</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件号：</span><span style="margin-left:8px;font-size:14px">3205XXXXXXXXXXXXXX</span></div>
+
+        </div>
+    </div>    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">🏥 幼儿健康信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px"><div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否残疾：</span><span style="margin-left:8px;font-size:14px">否</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否有心脏疾患：</span><span style="margin-left:8px;font-size:14px">否</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否高热抽筋：</span><span style="margin-left:8px;font-size:14px">否</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否有哮喘：</span><span style="margin-left:8px;font-size:14px">否</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否习惯性脱臼：</span><span style="margin-left:8px;font-size:14px">否</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否有家族遗传史：</span><span style="margin-left:8px;font-size:14px">否（无）</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否有药物食物过敏：</span><span style="margin-left:8px;font-size:14px">否（无）</span></div>
+
+        </div>
+        <div style="margin-top:8px"><div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">其他病史：</span><span style="margin-left:8px;font-size:14px">无</span></div>
+</div>
+        <div style="margin-top:8px;display:flex;align-items:flex-start;gap:12px"><span style="color:var(--text-secondary);font-size:13px">出生证附件：</span><div style="width:80px;height:80px;background:#FAFAFA;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary)">出生证</div></div>
+    </div>    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">📎 附件材料</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="text-align:center"><div style="width:100px;height:130px;background:#FAFAFA;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);margin-bottom:4px">户口<br/>户主页</div><span style="font-size:12px;color:var(--text-secondary)">儿童户口-户主页</span></div>
+        <div style="text-align:center"><div style="width:100px;height:130px;background:#FAFAFA;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);margin-bottom:4px">户口<br/>幼儿页</div><span style="font-size:12px;color:var(--text-secondary)">儿童户口-幼儿页</span></div>
+        <div style="text-align:center"><div style="width:100px;height:130px;background:#FAFAFA;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);margin-bottom:4px">父母<br/>身份证</div><span style="font-size:12px;color:var(--text-secondary)">父母身份证</span></div>
+        </div>
+    </div>    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">📝 审核日志</div>
+    <div class="timeline">
+        <div class="timeline-item done"><span class="tag tag-green">审核通过</span> · <span style="color:var(--text-secondary)">园长</span><br><span style="font-size:12px;color:var(--text-tertiary)">2026-05-04 10:15</span><br><span style="font-size:12px;color:var(--success)">√ 通过</span></div>
+        <div class="timeline-item done"><span class="tag tag-blue">提交报名</span> · <span style="color:var(--text-secondary)">张建国</span><br><span style="font-size:12px;color:var(--text-tertiary)">2026-05-03 14:30</span><br><span style="font-size:12px;color:var(--success)">√ 成功</span></div>
+        <div class="timeline-item done"><span class="tag tag-gray">保存草稿</span> · <span style="color:var(--text-secondary)">张建国</span><br><span style="font-size:12px;color:var(--text-tertiary)">2026-05-03 11:00</span><br><span style="font-size:12px;color:var(--success)">√ 成功</span></div>
+    </div></div>`,
+    `<button class="btn btn-default" onclick="closeDrawer()">关闭</button><button class="btn btn-primary" onclick="closeDrawer();toast('已通过${name}的报名审核，学生已进入档案','success')">审核通过</button><button class="btn btn-danger" onclick="closeDrawer();openRejectModal('${name}')">驳回</button>`);
+}
+
+function openRejectModal(name){
+    openModal('驳回 '+name+' 的报名申请',
+    `<div class="form-item"><label class="form-label required">驳回原因</label><div class="form-control"><textarea class="form-textarea" placeholder="请填写驳回原因（不超过200字）" maxlength="200" style="width:100%"></textarea></div></div>`,
+    `<button class="btn btn-default" onclick="closeModal()">取消</button><button class="btn btn-danger" onclick="closeModal();toast('已驳回，家长端可见驳回原因','success')">确认驳回</button>`);
+}
+
+// -- 收费管理 --
+function renderPaymentManage(){
+    let h=`<div class="page-title">收费管理</div>`;
+    h+=`<div class="card"><div class="search-bar" style="flex-wrap:wrap;align-items:center;gap:12px">
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">班级</label><select style="width:100px"><option>全部</option><option>小班</option><option>中班</option><option>大班</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">学期</label><select style="width:120px"><option>全部</option><option>2026年秋季</option><option>2026年春季</option><option>2025年秋季</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">费用项目</label><select style="width:100px"><option>全部</option><option>保育费</option><option>伙食费</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">幼儿姓名</label><input placeholder="模糊搜索" style="width:140px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">证件号</label><input placeholder="输入证件号码" style="width:160px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">账单编号</label><input placeholder="BILL-" style="width:170px;font-family:monospace"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">缴费状态</label><select style="width:100px"><option>全部</option><option>已缴</option><option>未缴</option><option>部分缴</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">发送状态</label><select style="width:100px"><option>全部</option><option>未发送</option><option>已发送</option></select></div>
+        <button class="btn btn-primary btn-sm">搜索</button>
+    </div></div>`;
+    h+=`<div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openNewFeeStep1()">+ 新增收费</button><button class="btn btn-default btn-sm" id="batchSendBtn" onclick="batchSendBill()">📤 批量发送账单</button><button class="btn btn-default btn-sm" onclick="toast('正在导出缴费明细_2026秋季.xlsx','success')">📥 导出 Excel</button></div>`;
+    h+=`<div class="card" style="overflow-x:auto"><table style="min-width:1500px;white-space:nowrap"><thead><tr><th style="width:40px"><input type="checkbox" id="billSelectAll" onchange="toggleAllBillCB(this)"></th><th style="width:170px">账单编号</th><th>幼儿姓名</th><th>班级</th><th>证件号码</th><th>学期</th><th>费用项目</th><th style="text-align:right">应收</th><th style="text-align:center">余额</th><th style="text-align:right">实收</th><th style="width:80px;text-align:center">缴费状态</th><th style="width:80px;text-align:center">发送状态</th><th>操作</th></tr></thead>
+        <tbody>${[
+            {n:'张小明',c:'小班',id:'3205XXXXXXXXXXXX1234',s:'2026年秋季',item:'保育费',ya:'3000',ye:'0',ys:'3000',bi:'BILL-20260509-001',st:'已发送',pst:'已缴'},
+            {n:'张小明',c:'小班',id:'3205XXXXXXXXXXXX1234',s:'2026年秋季',item:'伙食费',ya:'1500',ye:'0',ys:'1500',bi:'BILL-20260509-002',st:'已发送',pst:'已缴'},
+            {n:'李小芳',c:'中班',id:'3205XXXXXXXXXXXX5678',s:'2026年秋季',item:'保育费',ya:'3200',ye:'0',ys:'3200',bi:'BILL-20260509-003',st:'未发送',pst:'未缴'},
+            {n:'李小芳',c:'中班',id:'3205XXXXXXXXXXXX5678',s:'2026年秋季',item:'伙食费',ya:'1800',ye:'0',ys:'1800',bi:'BILL-20260509-004',st:'未发送',pst:'未缴'},
+            {n:'王浩然',c:'大班',id:'3205XXXXXXXXXXXX9012',s:'2026年秋季',item:'保育费',ya:'3500',ye:'0',ys:'0',bi:'BILL-20260509-005',st:'未发送',pst:'未缴'},
+            {n:'王浩然',c:'大班',id:'3205XXXXXXXXXXXX9012',s:'2026年秋季',item:'伙食费',ya:'2000',ye:'0',ys:'0',bi:'BILL-20260509-006',st:'未发送',pst:'未缴'},
+            {n:'赵雨涵',c:'小班',id:'3201XXXXXXXXXXXX3456',s:'2026年秋季',item:'保育费',ya:'3000',ye:'0',ys:'3000',bi:'BILL-20260509-007',st:'已发送',pst:'已缴'}
+        ].map(r=>{
+            var idLabel = r.id.slice(0,4)+'**********'+r.id.slice(-4);
+            var stClass = r.st==='已发送' ? 'background:#F6FFED;color:#52C41A' : 'background:#FFF7E6;color:#FA8C16';
+            var pstClass = r.pst==='已缴' ? 'background:#F6FFED;color:#52C41A' : 'background:#FFF7E6;color:#FA8C16';
+            var detailFn = r.st==='已发送' ? 'openBillDetail' : 'openEditPayment';
+            var sendBtn = r.st==='未发送' ? '<a href="#" onclick="event.preventDefault();confirmSendBill(\''+r.n+'\',\''+r.item+'\')">发送账单</a>' : '<span style="color:var(--text-tertiary);cursor:default">发送成功</span>';
+            var delBtn = r.st==='未发送' ? '<a href="#" onclick="event.preventDefault();confirmDeleteBill(\''+r.bi+'\')">删除</a>' : '<span style="color:var(--text-tertiary);cursor:not-allowed">删除</span>';
+            var cbDisabled = r.st==='已发送' ? 'disabled style="opacity:0.4"' : '';
+            return '<tr><td><input type="checkbox" class="bill-cb" data-student="'+r.n+'" data-item="'+r.item+'" onchange="checkBatchSend()" '+cbDisabled+'></td><td style="font-size:13px;font-family:monospace;color:var(--text-secondary)">'+r.bi+'</td><td>'+r.n+'</td><td>'+r.c+'</td><td style="font-size:13px;font-family:monospace">'+idLabel+'</td><td style="font-size:13px">'+r.s+'</td><td>'+r.item+'</td><td style="text-align:right">¥'+r.ya+'</td><td style="text-align:center;color:var(--text-tertiary)">'+(r.item==='保育费'?'—':'¥'+r.ye)+'</td><td style="text-align:right;font-weight:500">¥'+r.ys+'</td><td style="text-align:center"><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;'+pstClass+'">'+r.pst+'</span></td><td style="text-align:center"><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;'+stClass+'">'+r.st+'</span></td><td class="actions"><a href="#" onclick="event.preventDefault();'+detailFn+'(\''+r.n+'\',\''+r.item+'\')">详情</a><span class="divider">|</span>'+sendBtn+'<span class="divider">|</span>'+delBtn+'</td></tr>';
+        }).join('')}
+    </tbody></table>
+    <div class="pagination"><span>共 1 页</span><span class="page-divider">|</span><span>20 条/页</span><div class="pages"><span class="page-num active">1</span></div><span class="page-goto">前往 <input type="number" min="1" max="1" value="1"> 页</span></div></div>`;
+    return h;
+}
+
+function openEditPayment(name, item){
+    openDrawer('编辑缴费 — '+name+' · '+item,
+    `<div style="padding:16px 0">
+        <div style="margin-bottom:16px;padding:12px;background:var(--primary-bg);border-radius:var(--radius)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">
+                <div><span style="color:var(--text-secondary);font-size:13px">幼儿姓名：</span><span style="margin-left:8px">${name}</span></div>
+                <div><span style="color:var(--text-secondary);font-size:13px">费用项目：</span><span style="margin-left:8px">${item}</span></div>
+                <div><span style="color:var(--text-secondary);font-size:13px">应收金额：</span><span style="margin-left:8px;font-weight:600">¥3,000</span></div>
+                <div><span style="color:var(--text-secondary);font-size:13px">已缴金额：</span><span style="margin-left:8px;font-weight:600;color:var(--success)">¥3,000</span></div>
+            </div>
+        </div>
+        <div class="form-item"><label class="form-label">减免金额</label><div class="form-control"><input class="form-input" type="number" value="0" style="width:200px"></div></div>
+        <div class="form-item"><label class="form-label">减免原因</label><div class="form-control"><textarea class="form-textarea" placeholder="选填减免原因" style="width:100%" maxlength="200"></textarea></div></div>
+    </div>`,
+    '<button class="btn btn-default" onclick="closeDrawer()">取消</button><button class="btn btn-primary" onclick="closeDrawer();toast(\'编辑保存成功\',\'success\')">保存</button>');
+}
+
+function openBillDetail(name){
+    openDrawer('账单详情 — '+name,
+    `<div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px">
+        <div style="font-weight:600;font-size:14px;margin-bottom:12px">📋 缴费汇总</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="stat-card" style="padding:12px"><div class="label" style="font-size:12px">应收总额</div><div class="value" style="font-size:22px">¥4,500</div></div>
+            <div class="stat-card" style="padding:12px"><div class="label" style="font-size:12px">已缴总额</div><div class="value" style="font-size:22px;color:var(--success)">¥4,500</div></div>
+            <div class="stat-card" style="padding:12px"><div class="label" style="font-size:12px">未缴金额</div><div class="value" style="font-size:22px;color:var(--text-tertiary)">¥0</div></div>
+            <div class="stat-card" style="padding:12px"><div class="label" style="font-size:12px">缴费状态</div><div class="value" style="font-size:18px">${tag('已缴清','绿')}</div></div>
+        </div>
+    </div>
+    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px">
+        <div style="font-weight:600;font-size:14px;margin-bottom:12px">📄 费用明细</div>
+        <table style="width:100%">${tHead(['费用项目','应收金额','已缴金额','缴费时间','状态'])}
+        <tbody>
+            <tr><td>保育费</td><td>¥3,000</td><td>¥3,000</td><td>2026-05-04 15:30</td><td>${tag('已支付','绿')}</td></tr>
+            <tr><td>伙食费</td><td>¥1,500</td><td>¥1,500</td><td>2026-05-04 15:32</td><td>${tag('已支付','绿')}</td></tr>
+        </tbody></table>
+    </div>`,
+    '<button class="btn btn-default" onclick="closeDrawer()">关闭</button>');
+}
+
+function toggleAllBillCB(master){
+    document.querySelectorAll('.bill-cb').forEach(function(cb){cb.checked = master.checked;});
+    checkBatchSend();
+}
+function checkBatchSend(){
+    var checked = document.querySelectorAll('.bill-cb:checked');
+    var btn = document.getElementById('batchSendBtn');
+    if(btn) btn.textContent = checked.length ? '📤 批量发送('+checked.length+')' : '📤 批量发送账单';
+}
+function batchSendBill(){
+    var checked = document.querySelectorAll('.bill-cb:checked');
+    var names = Array.from(checked).map(function(cb){return cb.dataset.student;});
+    if(names.length === 0){toast('请勾选要发送账单的学生','warn');return;}
+    var uniqueNames = [...new Set(names)];
+    openModal('批量发送账单','<div style="padding:20px;text-align:center"><div style="font-size:32px;color:var(--primary);margin-bottom:16px">📤</div><div style="font-size:16px;margin-bottom:8px">确定向选中的 <strong style="color:var(--primary)">'+uniqueNames.length+'</strong> 名学生发送账单通知？</div></div>','<button class="btn btn-default" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();toast(\'已向'+uniqueNames.length+'名学生发送账单通知\',\'success\');navTo(\'payment-manage\')">确认发送</button>');
+}
+function confirmSendBill(name, item){
+    openModal('发送账单','<p style="padding:16px 0">确定向 <strong>'+name+'</strong> 的家长发送<strong>'+item+'</strong>账单通知？</p>','<button class="btn btn-default" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();toast(\'账单已发送\',\'success\');navTo(\'payment-manage\')">确认发送</button>');
+}
+function confirmDeleteBill(billId){
+    openModal('删除账单','<div style="padding:16px 0"><p>确定删除账单 <strong style="font-family:monospace">'+billId+'</strong>？删除后无法恢复。</p></div>','<button class="btn btn-default" onclick="closeModal()">取消</button><button class="btn btn-primary" style="background:#ff4d4f;border-color:#ff4d4f" onclick="closeModal();toast(\'账单\'+billId+\'已删除\',\'success\');navTo(\'payment-manage\')">确认删除</button>');
+}
+function confirmGenerateBill(){
+    var studentCount = window.newFeeState.students.length;
+    closeDrawer();
+    openModal('确认生成收费','<div style="padding:20px;text-align:center"><div style="font-size:32px;color:var(--primary);margin-bottom:16px">⚠️</div><div style="font-size:16px;margin-bottom:8px">即将生成 <strong style="color:var(--primary)">'+studentCount+'</strong> 个学生的收费账单</div><div style="font-size:14px;color:var(--text-secondary)">点击发送账单后才会正式生效，家长端将显示待支付费用</div></div>','<button class="btn btn-default" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();toast(\'收费账单已生成，请点击发送账单通知家长\',\'success\');navTo(\'payment-manage\')">确认生成</button>');
+}
+
+// 新增收费 Step 1
+window.newFeeState = {step:1,items:[],students:[],semester:'2026年秋季',dueDate:'',fees:{}};
+function openNewFeeStep1(){
+    window.newFeeState = {step:1,items:[],students:[],semester:'2026年秋季',dueDate:'',fees:{}};
+    var feeItems = [{id:'baoyu',name:'保育费', fee:3000, desc:'按班级标准收取'},{id:'canshi',name:'伙食费', fee:1500, desc:'按班级标准收取'}];
+    var stepsHtml = '<div style="display:flex;align-items:center;margin-bottom:24px"><div style="flex:1;text-align:center"><div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;line-height:32px;margin:0 auto 8px">1</div><div style="font-size:13px;color:var(--primary)">选择费项</div></div><div style="flex:1;height:2px;background:var(--border)"><div style="width:50%;height:100%;background:var(--border)"></div></div><div style="flex:1;text-align:center"><div style="width:32px;height:32px;background:var(--border);color:var(--text-tertiary);border-radius:50%;line-height:32px;margin:0 auto 8px">2</div><div style="font-size:13px;color:var(--text-tertiary)">选择学生</div></div><div style="flex:1;height:2px;background:var(--border)"><div style="width:0;height:100%;background:var(--border)"></div></div><div style="flex:1;text-align:center"><div style="width:32px;height:32px;background:var(--border);color:var(--text-tertiary);border-radius:50%;line-height:32px;margin:0 auto 8px">3</div><div style="font-size:13px;color:var(--text-tertiary)">生成收费</div></div></div>';
+    var semesterHtml = '<div style="display:flex;gap:16px;margin-bottom:16px"><div style="flex:1"><label style="font-size:14px;font-weight:500;margin-bottom:8px;display:block">选择学期</label><select id="nf_semester" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px" onchange="window.newFeeState.semester=this.value"><option value="2026年秋季">2026年秋季学期</option><option value="2026年春季">2026年春季学期</option><option value="2025年秋季">2025年秋季学期</option></select></div><div style="flex:1"><label style="font-size:14px;font-weight:500;margin-bottom:8px;display:block">缴费截止日期 <span style="font-size:12px;color:var(--text-tertiary);font-weight:400">（仅作展示）</span></label><input type="date" id="nf_due_date" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px" onchange="window.newFeeState.dueDate=this.value"></div></div>';
+    var feeCardsHtml = feeItems.map(function(f){return '<label style="display:block;padding:16px;margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor=\'var(--primary)\'" onmouseout="this.style.borderColor=\'var(--border)\'"><input type="checkbox" id="nf_fee_'+f.id+'" value="'+f.id+'" data-fee="'+f.fee+'" style="display:none" onchange="updateFeeTotal()"><div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:15px;font-weight:500">'+f.name+'</div><div style="font-size:12px;color:var(--text-tertiary);margin-top:4px">'+f.desc+'</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:600;color:var(--primary)">¥<span id="nf_fee_amt_'+f.id+'">'+f.fee+'</span></div><div style="font-size:12px;color:var(--text-tertiary)">元/学期</div></div></div></label>';}).join('');
+    var totalHtml = '<div style="text-align:right;padding:12px;background:var(--bg-container);border-radius:var(--radius);margin-top:16px"><span style="font-size:14px;color:var(--text-secondary)">已选费项合计：</span><span style="font-size:20px;font-weight:600;color:var(--primary)" id="nf_fee_total">¥0</span></div>';
+    openDrawer('新增收费', stepsHtml + semesterHtml + feeCardsHtml + totalHtml, '<button class="btn btn-default" onclick="closeDrawer()">取消</button><button class="btn btn-primary" onclick="openNewFeeStep2()">下一步</button>');
+    document.querySelectorAll('[id^=nf_fee_]').forEach(function(cb){cb.addEventListener('change',function(){var card=this.closest('label');if(this.checked){card.style.borderColor='var(--primary)';card.style.background='#F6FFED';}else{card.style.borderColor='var(--border)';card.style.background='transparent';}});});
+}
+function updateFeeTotal(){
+    var total = 0;
+    document.querySelectorAll('[id^=nf_fee_][type=checkbox]:checked').forEach(function(cb){total += parseFloat(cb.dataset.fee || 0);});
+    var el = document.getElementById('nf_fee_total'); if(el) el.textContent = '¥' + total;
+}
+// 新增收费 Step 2 穿梭框
+function openNewFeeStep2(){
+    var checkedFees = document.querySelectorAll('[id^=nf_fee_][type=checkbox]:checked');
+    if(checkedFees.length===0){toast('请至少选择一个费项','warn');return;}
+    window.newFeeState.items = Array.from(checkedFees).map(function(cb){return cb.value;});
+    window.newFeeState.semester = document.getElementById('nf_semester').value;
+    window.newFeeState.dueDate = document.getElementById('nf_due_date').value;
+    var students = [{n:'张小明',c:'小班',id:'3205**********1234'},{n:'李小芳',c:'中班',id:'3205**********5678'},{n:'王浩然',c:'大班',id:'3205**********9012'},{n:'赵雨涵',c:'小班',id:'3201**********3456'},{n:'陈思远',c:'中班',id:'3205**********7890'},{n:'孙佳怡',c:'托班',id:'3205**********1122'},{n:'周宇轩',c:'小班',id:'3205**********3344'},{n:'吴思涵',c:'中班',id:'3201**********5566'}];
+    var selectedStudents = window.newFeeState.students;
+    var stepsHtml = '<div style="display:flex;align-items:center;margin-bottom:24px"><div style="flex:1;text-align:center"><div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;line-height:32px;margin:0 auto 8px">1</div><div style="font-size:13px;color:var(--primary)">选择费项</div></div><div style="flex:1;height:2px;background:var(--primary)"></div><div style="flex:1;text-align:center"><div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;line-height:32px;margin:0 auto 8px">2</div><div style="font-size:13px;color:var(--primary)">选择学生</div></div><div style="flex:1;height:2px;background:var(--border)"><div style="width:0;height:100%;background:var(--border)"></div></div><div style="flex:1;text-align:center"><div style="width:32px;height:32px;background:var(--border);color:var(--text-tertiary);border-radius:50%;line-height:32px;margin:0 auto 8px">3</div><div style="font-size:13px;color:var(--text-tertiary)">生成收费</div></div></div>';
+    var leftHtml = students.map(function(s){return '<label style="display:block;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer" onmouseover="this.style.background=\'var(--bg-container)\'" onmouseout="this.style.background=\'transparent\'"><input type="checkbox" class="nf-student-left" value="'+s.n+'" data-class="'+s.c+'" '+(selectedStudents.includes(s.n)?'checked':'')+' onchange="moveStudent(this,\'right\')"><span style="font-weight:500">'+s.n+'</span><span style="color:var(--text-tertiary);font-size:12px;margin-left:8px">'+s.c+'</span><span style="color:var(--text-tertiary);font-size:11px;margin-left:8px">'+s.id+'</span></label>';}).join('');
+    var rightHtml = selectedStudents.length ? students.filter(function(s){return selectedStudents.includes(s.n);}).map(function(s){return '<label style="display:block;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer" onmouseover="this.style.background=\'var(--bg-container)\'" onmouseout="this.style.background=\'transparent\'"><input type="checkbox" class="nf-student-right" value="'+s.n+'" checked onchange="moveStudent(this,\'left\')"><span style="font-weight:500">'+s.n+'</span><span style="color:var(--text-tertiary);font-size:12px;margin-left:8px">'+s.c+'</span><span style="color:var(--text-tertiary);font-size:11px;margin-left:8px">'+s.id+'</span></label>';}).join('') : '';
+    var transferHtml = '<div style="margin-bottom:12px"><input type="text" id="nf_student_search" placeholder="搜索学生姓名或班级..." style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius)" oninput="filterStudents()"></div><div style="display:flex;gap:16px;height:300px"><div style="flex:1;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden"><div style="padding:10px 12px;background:var(--bg-container);border-bottom:1px solid var(--border);font-size:13px;font-weight:500">待选择学生 (<span id="left_count">'+students.length+'</span>)</div><div style="height:252px;overflow-y:auto" id="nf_left_list">'+leftHtml+'</div></div><div style="width:40px;display:flex;flex-direction:column;justify-content:center;gap:8px"><button class="btn btn-default btn-sm" onclick="moveAllRight()" style="width:36px">→</button><button class="btn btn-default btn-sm" onclick="moveAllLeft()" style="width:36px">←</button></div><div style="flex:1;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden"><div style="padding:10px 12px;background:var(--bg-container);border-bottom:1px solid var(--border);font-size:13px;font-weight:500;display:flex;justify-content:space-between;align-items:center"><span>已选学生（<span id="right_count">'+selectedStudents.length+'</span>）</span><a href="#" onclick="event.preventDefault();clearAllSelected()" style="font-size:12px;color:var(--primary)">清空</a></div><div style="height:252px;overflow-y:auto" id="nf_right_list">'+rightHtml+'</div></div></div>';
+    openDrawer('新增收费', stepsHtml + transferHtml, '<button class="btn btn-default" onclick="closeDrawer()">取消</button><button class="btn btn-default" onclick="openNewFeeStep1()">上一步</button><button class="btn btn-primary" onclick="openNewFeeStep3()">下一步</button>');
+}
+function filterStudents(){
+    var kw = document.getElementById('nf_student_search').value.toLowerCase();
+    document.querySelectorAll('.nf-student-left').forEach(function(cb){var label=cb.closest('label');var name=cb.value.toLowerCase();var cls=(cb.dataset.class||'').toLowerCase();label.style.display=(name.includes(kw)||cls.includes(kw)||kw==='')?'block':'none';});
+}
+function moveStudent(cb,dir){
+    var list = (dir==='right') ? document.getElementById('nf_right_list') : document.getElementById('nf_left_list');
+    var html = cb.closest('label').innerHTML;
+    var newLabel = document.createElement('label');
+    newLabel.style.cssText = 'display:block;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer';
+    newLabel.onmouseover = function(){this.style.background='var(--bg-container)';};
+    newLabel.onmouseout = function(){this.style.background='transparent';};
+    var newClass = 'nf-student-'+dir;
+    var newChecked = (dir==='right')?'checked':'';
+    newLabel.innerHTML = html.replace(/class="nf-student-(left|right)"/,'class="'+newClass+'"').replace(/onchange="moveStudent\(this,\'(left|right)\'\)"/,'onchange="moveStudent(this,\''+dir+'\')"').replace(/checked/,'').replace(/<input/,'<input '+newChecked);
+    list.appendChild(newLabel);
+    cb.closest('label').remove();
+    updateCounts();
+}
+function moveAllRight(){document.querySelectorAll('.nf-student-left').forEach(function(cb){cb.checked=true;moveStudent(cb,'right');});}
+function moveAllLeft(){document.querySelectorAll('.nf-student-right').forEach(function(cb){cb.checked=false;moveStudent(cb,'left');});}
+function clearAllSelected(){document.querySelectorAll('.nf-student-right').forEach(function(cb){cb.checked=false;moveStudent(cb,'left');});}
+function updateCounts(){document.getElementById('left_count').textContent=document.querySelectorAll('.nf-student-left').length;document.getElementById('right_count').textContent=document.querySelectorAll('.nf-student-right').length;}
+// 新增收费 Step 3 确认收费
+function openNewFeeStep3(){
+    if(document.querySelectorAll('.nf-student-right').length===0){toast('请至少选择一名学生','warn');return;}
+    var selectedRight = document.querySelectorAll('.nf-student-right');
+    window.newFeeState.students = Array.from(selectedRight).map(function(cb){return cb.value;});
+    var hasBaoyu = window.newFeeState.items.includes('baoyu');
+    var hasCanshi = window.newFeeState.items.includes('canshi');
+    var students = [{n:'张小明',c:'小班',id:'3205**********1234',ba:3000,can:1500},{n:'李小芳',c:'中班',id:'3205**********5678',ba:3200,can:1800},{n:'王浩然',c:'大班',id:'3205**********9012',ba:3500,can:2000},{n:'赵雨涵',c:'小班',id:'3201**********3456',ba:3000,can:1500},{n:'陈思远',c:'中班',id:'3205**********7890',ba:3200,can:1800},{n:'孙佳怡',c:'托班',id:'3205**********1122',ba:2800,can:1200},{n:'周宇轩',c:'小班',id:'3205**********3344',ba:3000,can:1500},{n:'吴思涵',c:'中班',id:'3201**********5566',ba:3200,can:1800}].filter(function(s){return window.newFeeState.students.includes(s.n);});
+    var studentBalances = {'张小明':120,'李小芳':0,'王浩然':200,'赵雨涵':0,'陈思远':80,'孙佳怡':50,'周宇轩':30,'吴思涵':0};
+    var genId = 'nf_' + Date.now();
+    var thCols = ['学生','班级','证件号','费用项目','应收','余额','实收'];
+    var feeNameMap = {baoyu:'保育费',canshi:'伙食费'};
+    var rowHtml = [];
+    students.forEach(function(r){
+        var balance = studentBalances[r.n] || 0;
+        window.newFeeState.items.forEach(function(feeId){
+            var feeName = feeNameMap[feeId] || feeId;
+            var yingshou = feeId==='baoyu' ? r.ba : r.can;
+            var balanceDisplay = feeId==='baoyu' ? '-' : '¥'+balance;
+            var shishouInputId = genId+'_'+r.n+'_'+feeId+'_ss';
+            if(feeId==='baoyu'){
+                rowHtml.push('<tr><td>'+r.n+'</td><td>'+r.c+'</td><td style="color:var(--text-tertiary);font-size:12px">'+r.id+'</td><td>'+feeName+'</td><td style="text-align:right">¥'+yingshou+'</td><td style="text-align:center;color:var(--text-tertiary)">'+balanceDisplay+'</td><td style="text-align:right;font-weight:500;color:var(--primary)">¥'+r.ba+'</td></tr>');
+            } else {
+                var actualCan = Math.max(0, r.can - balance);
+                rowHtml.push('<tr><td>'+r.n+'</td><td>'+r.c+'</td><td style="color:var(--text-tertiary);font-size:12px">'+r.id+'</td><td>'+feeName+'</td><td style="text-align:right">¥'+yingshou+'</td><td style="text-align:center;color:var(--text-secondary)">'+balanceDisplay+'</td><td style="text-align:right;font-weight:500;color:var(--primary)">¥'+actualCan+'</td></tr>');
+            }
+        });
+    });
+    rowHtml = rowHtml.join('');
+    var stepsHtml = '<div style="display:flex;align-items:center;margin-bottom:24px"><div style="flex:1;text-align:center"><div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;line-height:32px;margin:0 auto 8px">1</div><div style="font-size:13px;color:var(--primary)">选择费项</div></div><div style="flex:1;height:2px;background:var(--primary)"></div><div style="flex:1;text-align:center"><div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;line-height:32px;margin:0 auto 8px">2</div><div style="font-size:13px;color:var(--primary)">选择学生</div></div><div style="flex:1;height:2px;background:var(--primary)"></div><div style="flex:1;text-align:center"><div style="width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;line-height:32px;margin:0 auto 8px">3</div><div style="font-size:13px;color:var(--primary)">生成收费</div></div></div>';
+    var initTotal = 0;
+    students.forEach(function(s){if(hasBaoyu) initTotal += s.ba; if(hasCanshi){var b=studentBalances[s.n]||0; initTotal += Math.max(0, s.can - b);}});
+    openDrawer('新增收费', stepsHtml + '<div style="margin-bottom:12px;padding:12px;background:#F6FFED;border:1px solid #B7EB8F;border-radius:var(--radius);font-size:13px"><div><strong>学期：</strong>'+window.newFeeState.semester+'</div><div><strong>已选费项：</strong>'+window.newFeeState.items.map(function(id){return feeNameMap[id]||id;}).join(' / ')+'</div><div><strong>已选学生：</strong>'+window.newFeeState.students.length+' 名学生</div>'+(window.newFeeState.dueDate?'<div><strong>缴费截止日期：</strong>'+window.newFeeState.dueDate+' <span style="font-size:12px;color:var(--text-tertiary)">（仅作展示，不限制缴费）</span></div>':'')+'</div></div><table><thead><tr><th style="text-align:left">学生</th><th style="text-align:left">班级</th><th style="text-align:left">证件号</th><th style="text-align:left">费用项目</th><th style="text-align:right">应收</th><th style="text-align:center">余额</th><th style="text-align:right">实收</th></tr></thead><tbody>'+rowHtml+'</tbody></table><div style="text-align:right;margin-top:12px;font-size:16px;font-weight:600">应收合计：<span style="color:var(--primary)" id="nf-total-'+genId+'">¥'+initTotal.toFixed(2)+'</span></div>', '<button class="btn btn-default" onclick="closeDrawer()">取消</button><button class="btn btn-default" onclick="openNewFeeStep2()">上一步</button><button class="btn btn-primary" onclick="confirmGenerateBill()">确认生成收费</button>');
+    window.calcNFTotal = function(){
+        var t=0;
+        students.forEach(function(r){window.newFeeState.items.forEach(function(feeId){if(feeId==='baoyu'){t+=r.ba;}else{var b=studentBalances[r.n]||0;t+=Math.max(0,r.can-b);}});});
+        var te=document.getElementById('nf-total-'+genId);if(te)te.textContent='¥'+t.toFixed(2);
+    };
+}
+
+// -- 学生档案 --
+let studentData = [
+    {n:'张小明',g:'男',b:'苏州市',birth:'2021-03-15',idType:'身份证',idNo:'3205**********1234',nat:'中国',eth:'汉族',ori:'江苏苏州',reg:'苏州市姑苏区XX路XX号',addr:'苏州市工业园区XX小区XX幢',y:'2026',c:'小班',bal:'¥120',type:'正常',relation:'父亲',email:'zhang@example.com',onlyChild:'是',
+	     parent:'张建国',parentG:'男',parentWork:'苏州大学',parentWorkNo:'SU2021001',parentIdType:'身份证',parentIdNo:'3205XXXXXXXXXXXXXX',parentPhone:'138****5678',parentEdu:'博士',
+	     spouse:'李梅',spouseEdu:'硕士',spousePhone:'139****1234',spouseWork:'苏州市立医院',spouseIdType:'身份证',spouseIdNo:'3205XXXXXXXXXXXXXX',
+	     otherHistory:'无'},
+    {n:'李小芳',g:'女',b:'南京市',birth:'2021-07-22',idType:'身份证',idNo:'3201**********5678',nat:'中国',eth:'汉族',ori:'江苏南京',reg:'南京市鼓楼区XX路XX号',addr:'南京市江宁区XX小区XX幢',y:'2025',c:'中班',bal:'¥0',type:'正常',relation:'母亲',email:'li@example.com',onlyChild:'否',childOrder:'二孩',
+	     parent:'李芳',parentG:'女',parentWork:'南京大学',parentWorkNo:'NJ2021005',parentIdType:'身份证',parentIdNo:'3201XXXXXXXXXXXXXX',parentPhone:'139****9012',parentEdu:'硕士',
+	     spouse:'王强',spouseEdu:'本科',spousePhone:'138****3456',spouseWork:'南京市第一中学',spouseIdType:'身份证',spouseIdNo:'3201XXXXXXXXXXXXXX',
+	     otherHistory:'无'},
+    {n:'王浩然',g:'男',b:'无锡市',birth:'2021-01-10',idType:'身份证',idNo:'3202**********9012',nat:'中国',eth:'汉族',ori:'江苏无锡',reg:'无锡市滨湖区XX路XX号',addr:'无锡市新吴区XX小区XX幢',y:'2024',c:'大班',bal:'¥200',type:'正常',relation:'父亲',email:'wang@example.com',onlyChild:'是',
+	     parent:'王磊',parentG:'男',parentWork:'无锡市教育局',parentWorkNo:'WX2022003',parentIdType:'身份证',parentIdNo:'3202XXXXXXXXXXXXXX',parentPhone:'137****7890',parentEdu:'本科',
+	     spouse:'陈静',spouseEdu:'本科',spousePhone:'136****2345',spouseWork:'无锡市人民医院',spouseIdType:'身份证',spouseIdNo:'3202XXXXXXXXXXXXXX',
+	     otherHistory:'无'},
+    {n:'赵雨涵',g:'女',b:'南通市',birth:'2021-09-05',idType:'身份证',idNo:'3206**********3456',nat:'中国',eth:'汉族',ori:'江苏南通',reg:'南通市崇川区XX路XX号',addr:'南通市通州区XX小区XX幢',y:'2026',c:'小班',bal:'¥0',type:'正常',relation:'母亲',email:'zhao@example.com',onlyChild:'否',childOrder:'一孩',
+	     parent:'赵敏',parentG:'女',parentWork:'南通大学',parentWorkNo:'NT2024008',parentIdType:'身份证',parentIdNo:'3206XXXXXXXXXXXXXX',parentPhone:'138****6789',parentEdu:'硕士',
+	     spouse:'刘洋',spouseEdu:'本科',spousePhone:'139****0123',spouseWork:'南通市建筑设计院',spouseIdType:'身份证',spouseIdNo:'3206XXXXXXXXXXXXXX',
+	     otherHistory:'无'},
+    {n:'陈思远',g:'男',b:'苏州市',birth:'2021-05-18',idType:'身份证',idNo:'3205**********7890',nat:'中国',eth:'汉族',ori:'江苏苏州',reg:'苏州市吴中区XX路XX号',addr:'苏州市相城区XX小区XX幢',y:'2025',c:'中班',bal:'¥80',type:'正常',relation:'父亲',email:'chen@example.com',onlyChild:'否',childOrder:'二孩',
+	     parent:'陈志强',parentG:'男',parentWork:'苏州工业园区管委会',parentWorkNo:'SIP2020006',parentIdType:'身份证',parentIdNo:'3205XXXXXXXXXXXXXX',parentPhone:'137****4567',parentEdu:'本科',
+	     spouse:'林美',spouseEdu:'大专',spousePhone:'136****8901',spouseWork:'苏州外国语学校',spouseIdType:'身份证',spouseIdNo:'3205XXXXXXXXXXXXXX',
+	     otherHistory:'无'}
+];
+
+function renderStudentArchive(){
+    let h=`<div class="page-title">学生档案管理</div>`;
+    h+=`<div class="card"><div class="search-bar" style="flex-wrap:nowrap;align-items:center;gap:16px">
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">幼儿姓名</label><input placeholder="模糊搜索" style="width:140px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">证件号</label><input placeholder="精确/模糊搜索" style="width:160px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:8px"><label style="white-space:nowrap">入园年份</label><select style="width:100px"><option>全部</option><option>2026</option><option>2025</option><option>2024</option></select></div>
+        <button class="btn btn-primary btn-sm">搜索</button>
+        <button class="btn btn-default btn-sm">重置</button>
+    </div></div>`;
+    h+=`<div class="table-actions"><button class="btn btn-primary btn-sm" onclick="openAddStudent()">+ 手动新增</button><button class="btn btn-default btn-sm" onclick="toast('请选择Excel文件批量导入伙食费余额','info')">📥 导入余额</button><button class="btn btn-default btn-sm" onclick="toast('正在导出学生伙食费余额.xlsx','success')">📤 导出余额</button><button class="btn btn-warning btn-sm" style="background:#FAAD14;color:#fff;border:none" onclick="openBatchPromote()">批量升班</button></div>`;
+    const cols = ['幼儿姓名','入学类型','幼儿性别','出生地','出生日期','证件类型','证件号','国籍','民族','籍贯','户口所在地','家庭常驻地址','入园年份','班级','伙食费余额','操作'];
+    h+=`<div class="card" style="overflow-x:auto"><table style="min-width:1750px">${tHead(cols)}
+        <tbody>${studentData.map((r,i)=>`<tr>
+            <td>${r.n}</td>
+            <td>${r.type==='插班'?tag('插班','橙'):tag('正常','蓝')}</td>
+            <td>${r.g}</td><td>${r.b}</td><td>${r.birth}</td>
+            <td>${r.idType}</td><td>${r.idNo}</td><td>${r.nat}</td><td>${r.eth}</td>
+            <td>${r.ori}</td><td>${r.reg}</td><td>${r.addr}</td><td>${r.y}</td>
+            <td>${r.c}</td>
+            <td><a href="#" onclick="event.preventDefault();toast('修改伙食费余额','info')" style="color:var(--primary)">${r.bal}</a></td>
+            <td class="actions"><a href="#" onclick="event.preventDefault();openEditStudent(${i})">查看详情</a></td>
+        </tr>`).join('')}
+    </tbody></table>
+    <div class="pagination"><span>共 1 页</span><span class="page-divider">|</span><span>20 条/页</span><div class="pages"><span class="page-num active">1</span></div><span class="page-goto">前往 <input type="number" min="1" max="1" value="1"> 页</span></div>
+    </div>`;
+    return h;
+}
+
+function openEditStudent(idx){
+    const s=studentData[idx];
+    if(!s) return;
+    openDrawer('学生档案 — '+s.n,
+    getStudentViewHtml(idx),
+    '<button class="btn btn-default" onclick="closeDrawer()">关闭</button><button class="btn btn-primary" onclick="switchToEditMode('+idx+')">编辑</button>');
+}
+
+function openAddStudent(){
+    openDrawer('新增学生档案',
+    getStudentEditHtml(-1),
+    '<button class="btn btn-default" onclick="closeDrawer()">取消</button><button class="btn btn-primary" onclick="saveStudentArchive(-1)">保存</button>');
+}
+
+function getStudentViewHtml(idx){
+    const s=studentData[idx];
+    if(!s) return '';
+    return `<div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">📋 幼儿基本信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px">
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">幼儿姓名：</span><span style="margin-left:8px;font-size:14px">${s.n}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">入学类型：</span><span style="margin-left:8px;font-size:14px">${s.type}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">性别：</span><span style="margin-left:8px;font-size:14px">${s.g}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">出生日期：</span><span style="margin-left:8px;font-size:14px">${s.birth||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">出生地：</span><span style="margin-left:8px;font-size:14px">${s.b||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">与子女关系：</span><span style="margin-left:8px;font-size:14px">${s.relation||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件类型：</span><span style="margin-left:8px;font-size:14px">${s.idType||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件号：</span><span style="margin-left:8px;font-size:14px">${s.idNo||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">国籍：</span><span style="margin-left:8px;font-size:14px">${s.nat||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">民族：</span><span style="margin-left:8px;font-size:14px">${s.eth||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">籍贯：</span><span style="margin-left:8px;font-size:14px">${s.ori||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">户口所在地：</span><span style="margin-left:8px;font-size:14px">${s.reg||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">家庭常驻地址：</span><span style="margin-left:8px;font-size:14px">${s.addr||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">入园年份：</span><span style="margin-left:8px;font-size:14px">${s.y||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">班级：</span><span style="margin-left:8px;font-size:14px">${s.c||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">联络邮箱：</span><span style="margin-left:8px;font-size:14px">${s.email||'-'}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否独生：</span><span style="margin-left:8px;font-size:14px">${s.onlyChild||'-'}${s.onlyChild==='否'&&s.childOrder?'（'+s.childOrder+'）':''}</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">伙食费余额：</span><span style="margin-left:8px;font-size:14px;color:var(--primary);cursor:pointer">${s.bal||'¥0'}</span></div>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:flex-start;gap:12px"><span style="color:var(--text-secondary);font-size:13px">幼儿照片：</span><div style="width:80px;height:100px;background:#FAFAFA;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);text-align:center">照片<br/>缩略图</div></div>
+    </div>
+    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">👨‍👩‍👧 父母基本信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px"><div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">家长姓名：</span><span style="margin-left:8px;font-size:14px">${s.parent||'-'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">性别：</span><span style="margin-left:8px;font-size:14px">${s.parentG||'-'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">工作单位：</span><span style="margin-left:8px;font-size:14px">${s.parentWork||'-'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">工号：</span><span style="margin-left:8px;font-size:14px">${s.parentWorkNo||'-'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件类型：</span><span style="margin-left:8px;font-size:14px">${s.parentIdType||'身份证'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件号：</span><span style="margin-left:8px;font-size:14px">${s.parentIdNo||'-'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">联系电话：</span><span style="margin-left:8px;font-size:14px">${s.parentPhone||'-'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">学历：</span><span style="margin-left:8px;font-size:14px">${s.parentEdu||'-'}</span></div>
+
+        </div>
+    </div>
+    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">💑 配偶信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px"><div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">配偶姓名：</span><span style="margin-left:8px;font-size:14px">${s.spouse||'-'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">学历：</span><span style="margin-left:8px;font-size:14px">${s.spouseEdu||'-'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">联系电话：</span><span style="margin-left:8px;font-size:14px">${s.spousePhone||'-'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">工作单位：</span><span style="margin-left:8px;font-size:14px">${s.spouseWork||'-'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件类型：</span><span style="margin-left:8px;font-size:14px">${s.spouseIdType||'身份证'}</span></div>
+<div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">证件号：</span><span style="margin-left:8px;font-size:14px">${s.spouseIdNo||'-'}</span></div>
+
+        </div>
+    </div>
+    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">🏥 幼儿健康信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 24px">
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否残疾：</span><span style="margin-left:8px;font-size:14px">否</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否有心脏疾患：</span><span style="margin-left:8px;font-size:14px">否</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否高热抽筋：</span><span style="margin-left:8px;font-size:14px">否</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否有哮喘：</span><span style="margin-left:8px;font-size:14px">否</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否习惯性脱臼：</span><span style="margin-left:8px;font-size:14px">否</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否有家族遗传史：</span><span style="margin-left:8px;font-size:14px">否（无）</span></div>
+            <div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">是否有药物食物过敏：</span><span style="margin-left:8px;font-size:14px">否（无）</span></div>
+        </div>
+        <div style="margin-top:8px"><div style="margin-bottom:8px"><span style="color:var(--text-secondary);font-size:13px">其他病史：</span><span style="margin-left:8px;font-size:14px">${s.otherHistory||'无'}</span></div>
+</div>
+        <div style="margin-top:8px;display:flex;align-items:flex-start;gap:12px"><span style="color:var(--text-secondary);font-size:13px">出生证附件：</span><div style="width:80px;height:80px;background:#FAFAFA;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary)">出生证</div></div>
+    </div>
+    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">📎 附件材料</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="text-align:center"><div style="width:100px;height:130px;background:#FAFAFA;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);margin-bottom:4px">户口<br/>户主页</div><span style="font-size:12px;color:var(--text-secondary)">儿童户口-户主页</span></div>
+        <div style="text-align:center"><div style="width:100px;height:130px;background:#FAFAFA;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);margin-bottom:4px">户口<br/>幼儿页</div><span style="font-size:12px;color:var(--text-secondary)">儿童户口-幼儿页</span></div>
+        <div style="text-align:center"><div style="width:100px;height:130px;background:#FAFAFA;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);margin-bottom:4px">父母<br/>身份证</div><span style="font-size:12px;color:var(--text-secondary)">父母身份证</span></div>
+        </div>
+    </div>`;
+}
+
+function switchToEditMode(idx){
+    const s=studentData[idx];
+    if(!s) return;
+    document.getElementById('drawer-title').textContent='编辑档案 — '+s.n;
+    document.getElementById('drawer-body').innerHTML=getStudentEditHtml(idx);
+    document.getElementById('drawer-footer').innerHTML='<button class="btn btn-default" onclick="closeDrawer()">取消</button><button class="btn btn-primary" onclick="saveStudentArchive('+idx+')">保存</button>';
+}
+
+function getStudentEditHtml(idx){
+    const isNew=(idx===-1);
+    const s=isNew?{n:'',g:'男',birth:'',b:'',idType:'身份证',idNo:'',nat:'中国',eth:'汉族',ori:'',reg:'',addr:'',y:'2026',c:'小班',bal:'0',type:'正常',relation:'父亲',email:'',onlyChild:'是',
+     parent:'',parentG:'男',parentWork:'',parentWorkNo:'',parentIdType:'身份证',parentIdNo:'',parentPhone:'',parentEdu:'本科',
+     spouse:'',spouseEdu:'本科',spousePhone:'',spouseWork:'',spouseIdType:'身份证',spouseIdNo:'',
+     otherHistory:'无'}:studentData[idx];
+    const sel=(v,o)=>v===o?'selected':'';
+    return `<div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">📋 幼儿基本信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">
+            <div><label style="font-size:13px;color:var(--text-secondary)">幼儿姓名</label><input class="form-input" id="sv_n" value="${isNew?'':s.n}" ${isNew?'':'readonly style="background:#FAFAFA;cursor:not-allowed"'}></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">入学类型</label><select class="form-input" id="sv_type"><option ${sel(s.type,'正常')}>正常入学</option><option ${sel(s.type,'插班')}>插班</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">性别</label><select class="form-input" id="sv_g"><option ${sel(s.g,'男')}>男</option><option ${sel(s.g,'女')}>女</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">出生日期</label><input class="form-input" type="date" id="sv_birth" value="${s.birth}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">出生地</label><input class="form-input" id="sv_b" value="${s.b}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">与子女关系</label><input class="form-input" id="sv_relation" value="${s.relation||''}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">证件类型</label><select class="form-input" id="sv_idType"><option ${sel(s.idType,'身份证')}>身份证</option><option ${sel(s.idType,'护照')}>护照</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">证件号</label><input class="form-input" id="sv_idNo" value="${s.idNo}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">国籍</label><input class="form-input" id="sv_nat" value="${s.nat}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">民族</label><input class="form-input" id="sv_eth" value="${s.eth}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">籍贯</label><input class="form-input" id="sv_ori" value="${s.ori}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">户口所在地</label><input class="form-input" id="sv_reg" value="${s.reg}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">家庭常驻地址</label><input class="form-input" id="sv_addr" value="${s.addr}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">入园年份</label><select class="form-input" id="sv_y"><option ${sel(s.y,'2024')}>2024</option><option ${sel(s.y,'2025')}>2025</option><option ${sel(s.y,'2026')}>2026</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">班级</label><select class="form-input" id="sv_c"><option ${sel(s.c,'小班')}>小班</option><option ${sel(s.c,'中班')}>中班</option><option ${sel(s.c,'大班')}>大班</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">伙食费余额（元）</label><input class="form-input" type="number" id="sv_bal" value="${isNew?'0':s.bal.replace('¥','')}" min="0" step="0.01"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">联络邮箱</label><input class="form-input" id="sv_email" value="${isNew?'':s.email||''}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">是否独生</label><select class="form-input" id="sv_only"><option selected>是</option><option>否（一孩）</option><option>否（二孩）</option><option>否（三孩）</option></select></div>
+    <div style="margin-top:12px;display:flex;align-items:flex-start;gap:12px"><span style="font-size:13px;color:var(--text-secondary)">幼儿照片：</span><div style="width:80px;height:100px;background:#FAFAFA;border:1px dashed var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);text-align:center;cursor:pointer">点击<br/>上传照片</div></div>
+        </div>
+    </div>
+    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">👨‍👩‍👧 父母基本信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">
+            <div><label style="font-size:13px;color:var(--text-secondary)">家长姓名</label><input class="form-input" id="sv_parent" value="${s.parent||''}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">性别</label><select class="form-input" id="sv_parentG"><option ${sel(s.parentG||'男','男')}>男</option><option ${sel(s.parentG||'男','女')}>女</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">工作单位</label><input class="form-input" id="sv_parentWork" value="${s.parentWork||''}"></div>
+	    <div><label style="font-size:13px;color:var(--text-secondary)">工号</label><input class="form-input" id="sv_parentWorkNo" value="${s.parentWorkNo||''}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">证件类型</label><select class="form-input" id="sv_parentIdType"><option ${sel(s.parentIdType||'身份证','身份证')}>身份证</option><option ${sel(s.parentIdType||'身份证','护照')}>护照</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">证件号</label><input class="form-input" id="sv_parentIdNo" value="${s.parentIdNo||''}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">联系电话</label><input class="form-input" id="sv_parentPhone" value="${s.parentPhone||''}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">学历</label><select class="form-input" id="sv_parentEdu"><option>高中及以下</option><option>大专</option><option>本科</option><option selected>硕士</option><option>博士</option></select></div>
+        </div>
+    </div>
+    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">💑 配偶信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">
+            <div><label style="font-size:13px;color:var(--text-secondary)">配偶姓名</label><input class="form-input" id="sv_spouse" value="${s.spouse||''}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">联系电话</label><input class="form-input" id="sv_spousePhone" value="${s.spousePhone||''}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">工作单位</label><input class="form-input" id="sv_spouseWork" value="${s.spouseWork||''}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">证件类型</label><select class="form-input" id="sv_spouseIdType"><option ${sel(s.spouseIdType||'身份证','身份证')}>身份证</option><option ${sel(s.spouseIdType||'身份证','护照')}>护照</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">证件号</label><input class="form-input" id="sv_spouseIdNo" value="${s.spouseIdNo||''}"></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">学历</label><select class="form-input" id="sv_spouseEdu"><option>高中及以下</option><option>大专</option><option selected>本科</option><option>硕士</option><option>博士</option></select></div>
+        </div>
+    </div>
+    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">🏥 幼儿健康信息</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">
+            <div><label style="font-size:13px;color:var(--text-secondary)">是否残疾</label><select class="form-input"><option selected>否</option><option>是</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">是否有心脏疾患</label><select class="form-input"><option selected>否</option><option>是</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">是否高热抽筋</label><select class="form-input"><option selected>否</option><option>是</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">是否有哮喘</label><select class="form-input"><option selected>否</option><option>是</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">是否习惯性脱臼</label><select class="form-input"><option selected>否</option><option>是</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">是否有家族遗传史</label><select class="form-input"><option selected>否（无）</option><option>是（见备注）</option></select></div>
+            <div><label style="font-size:13px;color:var(--text-secondary)">是否有药物食物过敏</label><select class="form-input"><option selected>否（无）</option><option>是（见备注）</option></select></div>
+            <div style="grid-column:1/3"><label style="font-size:13px;color:var(--text-secondary)">其他病史</label><textarea class="form-textarea" id="sv_otherHistory" placeholder="如有其他病史请说明">${s.otherHistory||'无'}</textarea></div>
+    <div style="margin-top:8px;display:flex;align-items:flex-start;gap:12px"><span style="font-size:13px;color:var(--text-secondary)">出生证附件：</span><div style="width:80px;height:80px;background:#FAFAFA;border:1px dashed var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);cursor:pointer">点击<br/>上传</div></div>
+        </div>
+    </div>
+    <div style="background:var(--bg-container);border:1px solid var(--border-split);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px"><div style="font-weight:600;font-size:14px;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-split)">📎 附件材料</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="text-align:center"><div style="width:100px;height:130px;background:#FAFAFA;border:1px dashed var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);margin-bottom:4px;cursor:pointer">点击<br/>上传</div><span style="font-size:12px;color:var(--text-secondary)">儿童户口-户主页</span></div>
+        <div style="text-align:center"><div style="width:100px;height:130px;background:#FAFAFA;border:1px dashed var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);margin-bottom:4px;cursor:pointer">点击<br/>上传</div><span style="font-size:12px;color:var(--text-secondary)">儿童户口-幼儿页</span></div>
+        <div style="text-align:center"><div style="width:100px;height:130px;background:#FAFAFA;border:1px dashed var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);margin-bottom:4px;cursor:pointer">点击<br/>上传</div><span style="font-size:12px;color:var(--text-secondary)">父母身份证</span></div>
+        </div>
+    </div>`;
+}
+
+
+function saveStudentArchive(idx){
+    const get=(id)=>document.getElementById(id);
+    if(idx===-1){
+        const onlyVal=document.querySelector('#sv_only')?document.querySelector('#sv_only').value:'是';
+        studentData.push({
+            n:get('sv_n').value.trim()||'新生', g:get('sv_g').value, birth:get('sv_birth').value,
+            b:get('sv_b').value, idType:get('sv_idType').value, idNo:get('sv_idNo').value,
+            nat:get('sv_nat').value, eth:get('sv_eth').value, ori:get('sv_ori').value,
+            reg:get('sv_reg').value, addr:get('sv_addr').value, y:get('sv_y').value,
+            c:get('sv_c').value, bal:'¥'+parseFloat(get('sv_bal').value||0).toFixed(2),
+            type:get('sv_type').value,
+            email:get('sv_email')?get('sv_email').value:'',
+            onlyChild:onlyVal,
+            parent:get('sv_parent').value, parentG:get('sv_parentG').value,
+            parentWork:get('sv_parentWork').value, parentWorkNo:get('sv_parentWorkNo')?get('sv_parentWorkNo').value:'', parentIdType:get('sv_parentIdType').value,
+            parentIdNo:get('sv_parentIdNo').value, parentPhone:get('sv_parentPhone').value,
+            parentEdu:get('sv_parentEdu').value,
+            spouse:get('sv_spouse').value, spousePhone:get('sv_spousePhone').value,
+            spouseWork:get('sv_spouseWork').value, spouseIdType:get('sv_spouseIdType').value,
+            spouseIdNo:get('sv_spouseIdNo').value, spouseEdu:get('sv_spouseEdu').value,
+            otherHistory:document.querySelector('#sv_otherHistory')?document.querySelector('#sv_otherHistory').value:'无'
+        });
+    }else{
+        const s=studentData[idx];
+        s.g=get('sv_g').value; s.birth=get('sv_birth').value; s.b=get('sv_b').value;
+        s.nat=get('sv_nat').value; s.eth=get('sv_eth').value; s.ori=get('sv_ori').value;
+        s.reg=get('sv_reg').value; s.addr=get('sv_addr').value; s.y=get('sv_y').value;
+        s.c=get('sv_c').value; s.bal='¥'+parseFloat(get('sv_bal').value||0).toFixed(2);
+        s.type=get('sv_type').value;
+        s.relation=get('sv_relation')?get('sv_relation').value:s.relation;
+        s.email=get('sv_email')?get('sv_email').value:s.email;
+        s.onlyChild=get('sv_only')?get('sv_only').value:s.onlyChild;
+        s.parent=get('sv_parent').value; s.parentG=get('sv_parentG').value;
+        s.parentWork=get('sv_parentWork').value; s.parentWorkNo=get('sv_parentWorkNo')?get('sv_parentWorkNo').value:s.parentWorkNo;
+        s.parentIdType=get('sv_parentIdType').value;
+        s.parentIdNo=get('sv_parentIdNo').value; s.parentPhone=get('sv_parentPhone').value;
+        s.parentEdu=get('sv_parentEdu').value;
+        s.spouse=get('sv_spouse').value; s.spousePhone=get('sv_spousePhone').value;
+        s.spouseWork=get('sv_spouseWork').value; s.spouseIdType=get('sv_spouseIdType').value;
+        s.spouseIdNo=get('sv_spouseIdNo').value; s.spouseEdu=get('sv_spouseEdu').value;
+        if(document.querySelector('#sv_otherHistory')) s.otherHistory=document.querySelector('#sv_otherHistory').value;
+    }
+    closeDrawer();
+    document.querySelector('#admin-content').innerHTML=renderStudentArchive();
+    toast(idx===-1?'学生档案已创建':'学生档案已更新','success');
+}
+
+function getTargetClass(c){
+    if(c==='托班') return '小班';
+    if(c==='小班') return '中班';
+    if(c==='中班') return '大班';
+    if(c==='大班') return '🎓 毕业';
+    return c;
+}
+function openBatchPromote(){
+    window._bpAll = studentData.map(s => ({
+        name: s.n, cls: s.c, target: getTargetClass(s.c), id: s.n, idNo: s.idNo||''
+    }));
+    window._bpR = [];
+    function renderTransfer(){
+        const lf = (window._leftF||'').toLowerCase(), rf = (window._rightF||'').toLowerCase();
+        const all = window._bpAll, rr = window._bpR;
+        const left = all.filter(x => !rr.includes(x.id) && (!lf || x.name.includes(lf) || x.idNo.includes(lf)));
+        const right = all.filter(x => rr.includes(x.id) && (!rf || x.name.includes(rf) || x.idNo.includes(rf)));
+
+        function stat(arr){ let s={}; arr.forEach(x=>{let k=x.cls+'→'+x.target; s[k]=(s[k]||0)+1;}); return s; }
+        // 统计基于全部数据（忽略搜索过滤）
+        const promoteAll = all.filter(x => !rr.includes(x.id));
+        const ps = stat(promoteAll);
+        const summary = Object.keys(ps).map(k=>k+' '+ps[k]+'人').join('，') + (rr.length ? ' ｜ 不升班：'+rr.length+'人' : '');
+
+        const btnText = right.length === all.length ? '全部不升班，无需操作' : '确认升班 '+(all.length-right.length)+' 人';
+
+        openDrawer('批量升班',
+            `<div style="margin-bottom:12px;font-size:13px;color:var(--text-tertiary)">左侧全选为升班学生，取消勾选则移至右侧不升班；支持按姓名/证件号搜索</div>
+            <div style="display:flex;gap:12px;min-height:320px">
+                <div style="flex:1;border:1px solid var(--border-split);border-radius:var(--radius);display:flex;flex-direction:column">
+                    <div style="padding:8px 12px;border-bottom:1px solid var(--border-split);font-weight:600;font-size:13px;background:#FAFAFA">升班学生（${left.length}）</div>
+                    <div style="padding:6px 12px;border-bottom:1px solid var(--border-split)"><input placeholder="搜索姓名/证件号" style="width:100%;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:4px;font-size:12px" oninput="window._leftF=this.value" onchange="openBatchPromote._r()"></div>
+                    <div style="flex:1;overflow-y:auto;padding:4px">${left.map(x=>`<label style="display:flex;align-items:center;padding:6px 8px;cursor:pointer;border-radius:4px;transition:background .1s" onmouseover="this.style.background='#F5F5F5'" onmouseout="this.style.background=''"><input type="checkbox" checked style="margin-right:8px" onchange="if(!this.checked){window._bpR.push('${x.id}');window._leftF='';openBatchPromote._r();}"><div><div style="font-size:13px;font-weight:500">${x.name}</div><div style="font-size:11px;color:var(--text-tertiary)">${x.idNo} ｜ ${x.cls} → ${x.target}</div></div></label>`).join('')||'<div style="color:var(--text-tertiary);text-align:center;padding:24px;font-size:13px">暂无匹配学生</div>'}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;justify-content:center;gap:6px;padding:0 4px">
+                    <button class="btn btn-sm btn-default" style="white-space:nowrap;padding:0 10px;height:32px;font-size:12px" onclick="window._bpR=window._bpAll.map(x=>x.id);openBatchPromote._r()">全部不升班 ›</button>
+                    <button class="btn btn-sm btn-default" style="white-space:nowrap;padding:0 10px;height:32px;font-size:12px" onclick="window._bpR=[];openBatchPromote._r()">‹ 全部升班</button>
+                </div>
+                <div style="flex:1;border:1px solid var(--border-split);border-radius:var(--radius);display:flex;flex-direction:column">
+                    <div style="padding:8px 12px;border-bottom:1px solid var(--border-split);font-weight:600;font-size:13px;background:#FAFAFA">不升班学生（${right.length}）</div>
+                    <div style="padding:6px 12px;border-bottom:1px solid var(--border-split)"><input placeholder="搜索姓名/证件号" style="width:100%;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:4px;font-size:12px" oninput="window._rightF=this.value" onchange="openBatchPromote._r()"></div>
+                    <div style="flex:1;overflow-y:auto;padding:4px">${right.map(x=>`<label style="display:flex;align-items:center;padding:6px 8px;cursor:pointer;border-radius:4px" onmouseover="this.style.background='#F5F5F5'" onmouseout="this.style.background=''"><input type="checkbox" checked style="margin-right:8px" onchange="if(!this.checked){window._bpR=window._bpR.filter(function(i){return i!=='${x.id}'});window._rightF='';openBatchPromote._r();}"><div><div style="font-size:13px;font-weight:500;color:var(--error)">${x.name}</div><div style="font-size:11px;color:var(--text-tertiary)">${x.idNo} ｜ ${x.cls} → 不升班</div></div></label>`).join('')||'<div style="color:var(--text-tertiary);text-align:center;padding:24px;font-size:13px">无</div>'}</div>
+                </div>
+            </div>
+            <div style="margin-top:12px;padding:10px 14px;background:#FAFAFA;border-radius:var(--radius);font-size:13px;color:var(--text-secondary)">${summary}</div>`,
+            `<button class="btn btn-default" onclick="closeDrawer()">取消</button>
+            <button class="btn btn-primary" onclick="confirmBatchPromote()"${right.length===all.length?' disabled':''}>${btnText}</button>`
+        );
+    }
+    openBatchPromote._r = renderTransfer;
+    renderTransfer();
+}
+
+function confirmBatchPromote(){
+    const all = window._bpAll, rr = window._bpR;
+    const nPromote = all.length - rr.length;
+    const promoteStats = all.filter(x => !rr.includes(x.id)).reduce(function(s,x){
+        var k = x.cls+'→'+x.target; s[k]=(s[k]||0)+1; return s;
+    }, {});
+    const statStr = Object.keys(promoteStats).map(function(k){return k+' '+promoteStats[k]+'人'}).join('，');
+    const stayNames = rr.length ? all.filter(x => rr.includes(x.id)).map(function(x){return x.name}).join('、') : '';
+    var h = '<div style="font-size:14px;line-height:2"><p>确认执行批量升班操作？</p>';
+    h += '<p style="font-size:13px;color:var(--text-secondary)">升班学生：'+nPromote+'人（'+statStr+'）</p>';
+    if(stayNames) h += '<p style="font-size:13px;color:var(--error)">不升班学生（'+rr.length+'人）：'+stayNames+'</p>';
+    h += '</div>';
+    var toastMsg = '升班操作完成：'+nPromote+'人已升级';
+    if(rr.length) toastMsg += ','+rr.length+'人保持原班级';
+    openModal('确认批量升班', h,
+        '<button class="btn btn-default" onclick="closeModal()">取消</button>'+
+        '<button class="btn btn-primary" onclick="closeModal();closeDrawer();toast(\''+toastMsg+'\',\'success\')">确认升班</button>'
+    );
+}
+// -- 缴费流水 --
+function renderBillInfo(){
+    let h=`<div class="page-title">缴费流水</div>`;
+    h+=`<div class="card"><div class="search-bar" style="flex-wrap:wrap;align-items:center;gap:12px">
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">账单编号</label><input placeholder="精确搜索" style="width:160px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">幼儿姓名</label><input placeholder="模糊搜索" style="width:100px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">证件号码</label><input placeholder="精确/模糊搜索" style="width:140px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">班级</label><select style="width:90px"><option>全部</option><option>小班</option><option>中班</option><option>大班</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">学期</label><select style="width:105px"><option>全部</option><option>2026年秋季</option><option>2026年春季</option><option>2025年秋季</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">费用项目</label><select style="width:90px"><option>全部</option><option>保育费</option><option>伙食费</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">缴费时间</label><input type="date" style="width:120px"> <span style="color:var(--text-tertiary)">—</span> <input type="date" style="width:120px"></div>
+        <button class="btn btn-primary btn-sm">搜索</button>
+    </div></div>`;
+    h+=`<div class="table-actions"><button class="btn btn-primary btn-sm" onclick="toast('正在导出缴费流水_20260507.xlsx','success')">📥 导出 Excel</button></div>`;
+    h+=`<div class="card"><table>${tHead(['账单编号','幼儿姓名','证件号','班级','学期','费用项目','金额','缴费时间','支付方式'])}
+        <tbody>${[
+            {b:'BILL-20260504-001',n:'张小明',id:'3205**********1234',c:'小班',s:'2026年春季',t:tag('保育费','蓝'),a:'¥3,000',d:'2026-05-04 15:30',p:'微信支付'},
+            {b:'BILL-20260504-002',n:'张小明',id:'3205**********1234',c:'小班',s:'2026年春季',t:tag('伙食费','橙'),a:'¥1,500',d:'2026-05-04 15:32',p:'微信支付'},
+            {b:'BILL-20260503-001',n:'李小芳',id:'3201**********5678',c:'中班',s:'2026年春季',t:tag('保育费','蓝'),a:'¥3,200',d:'2026-05-03 10:15',p:'支付宝'}
+        ].map(r=>`<tr><td style="font-family:monospace;font-size:12px">${r.b}</td><td>${r.n}</td><td>${r.id}</td><td>${r.c}</td><td>${r.s}</td><td>${r.t}</td><td>${r.a}</td><td>${r.d}</td><td>${r.p}</td></tr>`).join('')}
+    </tbody></table></div>`;
+    return h;
+}
+
+// -- 开票管理 --
+function renderInvoiceManage(){
+    let h=`<div class="page-title">开票管理</div>`;
+    h+=`<div class="card"><div class="search-bar" style="flex-wrap:wrap;align-items:center;gap:12px">
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">幼儿姓名</label><input placeholder="模糊搜索" style="width:120px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">班级</label><select style="width:90px"><option>全部</option><option>托班</option><option>小班</option><option>中班</option><option>大班</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">证件号码</label><input placeholder="精确匹配" style="width:150px"></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">开票状态</label><select style="width:110px"><option>全部</option><option>已开票</option><option>开票失败</option></select></div>
+        <div class="search-item" style="flex-direction:row;align-items:center;gap:6px"><label style="white-space:nowrap">开具时间</label><input type="date" style="width:125px"> <span style="color:var(--text-tertiary)">—</span> <input type="date" style="width:125px"></div>
+        <button class="btn btn-primary btn-sm">搜索</button>
+    </div></div>`;
+    h+=`<div class="card"><table>${tHead(['幼儿姓名','班级','证件号码','费用项目','金额','支付状态','开票状态','开具时间','操作'])}
+        <tbody>${[
+            {n:'张小明',c:'小班',id:'320***********1234',t:tag('保育费','蓝'),a:'¥3,000',p:tag('已支付','绿'),s:tag('已开票','绿'),d:'2026-05-04 15:35'},
+            {n:'王浩然',c:'中班',id:'410***********5678',t:tag('保育费','蓝'),a:'¥3,500',p:tag('已支付','绿'),s:tag('开票失败','红'),d:'-'}
+        ].map(r=>`<tr><td>${r.n}</td><td>${r.c}</td><td>${r.id}</td><td>${r.t}</td><td>${r.a}</td><td>${r.p}</td><td>${r.s}</td><td>${r.d}</td><td class="actions">${r.s.includes('失败')?'<a href="#" onclick="event.preventDefault();toast(\'已重新触发开票\',\'success\')">手动重试</a>':'<a href="#" onclick="event.preventDefault();toast(\'发票 PDF 已开始下载\',\'success\')">下载发票</a>'}</td></tr>`).join('')}
+    </tbody></table></div>`;
+    return h;
+}
+
+// -- 学期管理 --
+let semesters = [
+    {name:'2025年秋季', start:'2025-09-01', end:'2026-01-15',
+     fees:[{cls:'小班',b:'2800.00',f:'1400.00'},{cls:'中班',b:'3000.00',f:'1600.00'},{cls:'大班',b:'3500.00',f:'2000.00'}]},
+    {name:'2026年春季', start:'2026-02-15', end:'2026-07-01',
+     fees:[{cls:'小班',b:'3000.00',f:'1500.00'},{cls:'中班',b:'3200.00',f:'1800.00'},{cls:'大班',b:'3500.00',f:'2000.00'}]},
+    {name:'2026年秋季', start:'2026-09-01', end:'2027-01-15',
+     fees:[{cls:'小班',b:'3000.00',f:'1500.00'},{cls:'中班',b:'3200.00',f:'1800.00'},{cls:'大班',b:'3500.00',f:'2000.00'}]}
+];
+function renderSemesterManage(){
+    let h='<div class="page-title">学期管理</div>';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+        +'<div style="font-size:14px;color:var(--text-tertiary)">管理学期名称和起止日期</div>'
+        +'<button class="btn btn-primary btn-sm" onclick="openSemesterModal(-1)">+ 新增学期</button>'
+    +'</div>';
+    h+='<div class="card" style="overflow-x:auto"><table>'
+        +'<thead><tr><th>学期名称</th><th>开始日期</th><th>结束日期</th><th style="width:160px">操作</th></tr></thead>'
+        +'<tbody>'+semesters.map(function(s,i){
+            return '<tr>'
+                +'<td><strong>'+s.name+'</strong></td>'
+                +'<td>'+s.start+'</td>'
+                +'<td>'+s.end+'</td>'
+                +'<td class="actions">'
+                +'<a href="#" onclick="event.preventDefault();openSemesterModal('+i+')">编辑</a>'
+                +'<span class="divider">|</span>'
+                +'<a href="#" class="danger" onclick="event.preventDefault();confirmDelSemester('+i+')">删除</a>'
+                +'</td></tr>';
+        }).join('')+'</tbody></table></div>';
+    return h;
+}
+
+// -- 费用设置 (扁平列表) --
+let feeNextId = 13;
+let feeItems = [
+    {id:1, name:'保育费', amount:'3000.00', classType:'小班', semester:'2026年秋季'},
+    {id:2, name:'伙食费', amount:'1500.00', classType:'小班', semester:'2026年秋季'},
+    {id:3, name:'保育费', amount:'3200.00', classType:'中班', semester:'2026年秋季'},
+    {id:4, name:'伙食费', amount:'1800.00', classType:'中班', semester:'2026年秋季'},
+    {id:5, name:'保育费', amount:'3500.00', classType:'大班', semester:'2026年秋季'},
+    {id:6, name:'伙食费', amount:'2000.00', classType:'大班', semester:'2026年秋季'},
+    {id:7, name:'保育费', amount:'2800.00', classType:'小班', semester:'2025年秋季'},
+    {id:8, name:'伙食费', amount:'1400.00', classType:'小班', semester:'2025年秋季'},
+    {id:9, name:'保育费', amount:'3000.00', classType:'中班', semester:'2025年秋季'},
+    {id:10, name:'伙食费', amount:'1600.00', classType:'中班', semester:'2025年秋季'},
+    {id:11, name:'保育费', amount:'3500.00', classType:'大班', semester:'2025年秋季'},
+    {id:12, name:'伙食费', amount:'2000.00', classType:'大班', semester:'2025年秋季'}
+];
+let currentFeeSemester = '';
+function renderFeeSettings(){
+    // 默认查询最新学期
+    if(!currentFeeSemester && semesters.length>0){
+        currentFeeSemester = semesters[semesters.length-1].name;
+    }
+    var filtered = feeItems;
+    if(currentFeeSemester){
+        filtered = feeItems.filter(function(f){return f.semester===currentFeeSemester;});
+    }
+    var h='<div class="page-title">费用设置</div>';
+    // 学期查询
+    h+='<div class="card" style="margin-bottom:16px;padding:16px 24px">'
+        +'<div style="display:flex;align-items:center;gap:12px">'
+        +'<label style="font-size:14px;font-weight:500;white-space:nowrap">学期：</label>'
+        +'<select class="form-input" id="feeSemesterFilter" style="width:200px" onchange="changeFeeSemester(this.value)">'
+        +semesters.map(function(s){
+            var sel=s.name===currentFeeSemester?' selected':'';
+            return '<option value="'+s.name+'"'+sel+'>'+s.name+'</option>';
+        }).join('')
+        +'</select></div></div>';
+    h+='<div class="card" style="overflow-x:auto"><table>'
+        +tHead(['ID','费用项目','金额（元）','班型','学期','操作'])
+        +'<tbody>'+(filtered.length?filtered.map(function(f){
+            return '<tr>'
+                +'<td style="font-size:13px;color:var(--text-tertiary);font-family:monospace">'+f.id+'</td>'
+                +'<td>'+f.name+'</td>'
+                +'<td><strong>\u00a5'+f.amount+'</strong></td>'
+                +'<td>'+f.classType+'</td>'
+                +'<td>'+f.semester+'</td>'
+                +'<td class="actions">'
+                +'<a href="#" onclick="event.preventDefault();openFeeEditModal('+f.id+')">编辑</a>'
+                +'<span class="divider">|</span>'
+                +'<a href="#" class="danger" onclick="event.preventDefault();confirmDelFee('+f.id+')">删除</a>'
+                +'</td></tr>';
+        }).join(''):'<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-tertiary)">该学期暂无费用数据</td></tr>')+'</tbody></table></div>';
+    return h;
+}
+function changeFeeSemester(val){
+    currentFeeSemester=val;
+    document.querySelector('#admin-content').innerHTML=renderFeeSettings();
+}
+function openFeeEditModal(id){
+    var idx=-1;
+    for(var i=0;i<feeItems.length;i++){if(feeItems[i].id===id){idx=i;break;}}
+    if(idx<0){toast('未找到该费用记录','error');return;}
+    var f=feeItems[idx];
+    var semOptions = '';
+    for(var j=0;j<semesters.length;j++){
+        var sel=semesters[j].name===f.semester?' selected':'';
+        semOptions += '<option value="'+semesters[j].name+'"'+sel+'>'+semesters[j].name+'</option>';
+    }
+    openModal('编辑费用',
+        '<div class="form-item"><label class="form-label required" style="width:80px">费用项目</label>'
+        +'<div class="form-control"><select class="form-input" id="feeItemName" style="max-width:200px">'
+        +'<option'+(f.name==='保育费'?' selected':'')+'>保育费</option>'
+        +'<option'+(f.name==='伙食费'?' selected':'')+'>伙食费</option>'
+        +'</select></div></div>'
+        +'<div class="form-item"><label class="form-label required" style="width:80px">金额</label>'
+        +'<div class="form-control"><input class="form-input" id="feeItemAmount" type="number" step="0.01" min="0" value="'+f.amount+'" style="max-width:200px"></div></div>'
+        +'<div class="form-item"><label class="form-label required" style="width:80px">班型</label>'
+        +'<div class="form-control"><select class="form-input" id="feeItemClass" style="max-width:200px">'
+        +'<option'+(f.classType==='小班'?' selected':'')+'>小班</option>'
+        +'<option'+(f.classType==='中班'?' selected':'')+'>中班</option>'
+        +'<option'+(f.classType==='大班'?' selected':'')+'>大班</option>'
+        +'<option'+(f.classType==='托班'?' selected':'')+'>托班</option>'
+        +'</select></div></div>'
+        +'<div class="form-item"><label class="form-label required" style="width:80px">学期</label>'
+        +'<div class="form-control"><select class="form-input" id="feeItemSemester" style="max-width:200px">'+semOptions+'</select></div></div>',
+        '<button class="btn btn-default" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveFeeEdit('+id+')">保存</button>'
+    );
+}
+function saveFeeEdit(id){
+    var idx=-1;
+    for(var i=0;i<feeItems.length;i++){if(feeItems[i].id===id){idx=i;break;}}
+    if(idx<0){toast('未找到该费用记录','error');return;}
+    var amount=document.getElementById('feeItemAmount').value;
+    if(!amount||parseFloat(amount)<=0){toast('请输入有效金额','error');return;}
+    feeItems[idx].name=document.getElementById('feeItemName').value;
+    feeItems[idx].amount=parseFloat(amount).toFixed(2);
+    feeItems[idx].classType=document.getElementById('feeItemClass').value;
+    feeItems[idx].semester=document.getElementById('feeItemSemester').value;
+    closeModal();
+    document.querySelector('#admin-content').innerHTML=renderFeeSettings();
+    toast('费用已更新','success');
+}
+function confirmDelFee(id){
+    var idx=-1;
+    for(var i=0;i<feeItems.length;i++){if(feeItems[i].id===id){idx=i;break;}}
+    if(idx<0){toast('未找到该费用记录','error');return;}
+    openModal('确认删除','确定要删除费用项目「'+feeItems[idx].name+' - '+feeItems[idx].classType+' - '+feeItems[idx].semester+'」吗？删除后不可恢复。',
+        '<button class="btn btn-default" onclick="closeModal()">取消</button><button class="btn btn-danger" onclick="delFee('+id+')">确定删除</button>'
+    );
+}
+function delFee(id){
+    for(var i=0;i<feeItems.length;i++){
+        if(feeItems[i].id===id){feeItems.splice(i,1);break;}
+    }
+    closeModal();
+    document.querySelector('#admin-content').innerHTML=renderFeeSettings();
+    toast('已删除','success');
+}
+
+// -- 报名时间设置 --
+let enrollStartDate = '2026-06-01';
+let enrollEndDate = '2026-07-15';
+function renderEnrollWindow(){
+    var h='<div class="page-title">报名时间设置</div>';
+    h+='<div style="font-size:14px;color:var(--text-tertiary);margin-bottom:16px">设置家长端可提交入学报名的时间范围</div>';
+    h+='<div class="card" style="max-width:500px">'
+        +'<div class="form-item"><label class="form-label" style="width:80px">开始日期</label>'
+        +'<div class="form-control"><input class="form-input" type="date" id="enrollStartDate" value="'+enrollStartDate+'" style="width:180px"></div></div>'
+        +'<div class="form-item"><label class="form-label" style="width:80px">截止日期</label>'
+        +'<div class="form-control"><input class="form-input" type="date" id="enrollEndDate" value="'+enrollEndDate+'" style="width:180px"></div></div>'
+        +'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-split)">'
+        +'<button class="btn btn-primary" onclick="saveEnrollTime()">保存设置</button>'
+        +'<span id="enrollStatus" style="margin-left:12px;font-size:13px;color:var(--text-tertiary)"></span>'
+        +'</div></div>';
+    setTimeout(function(){
+        var st=document.getElementById('enrollStatus');
+        if(st) st.textContent = '当前设置：' + enrollStartDate + ' 至 ' + enrollEndDate;
+    }, 50);
+    return h;
+}
+function saveEnrollTime(){
+    enrollStartDate=document.getElementById('enrollStartDate').value;
+    enrollEndDate=document.getElementById('enrollEndDate').value;
+    document.querySelector('#admin-content').innerHTML=renderEnrollWindow();
+    toast('报名时间已保存','success');
+}
+
+// -- 学期 & 费用 共用弹窗 --
+function openSemesterModal(idx){
+    var isEdit=idx>=0;
+    var s=isEdit?semesters[idx]:{name:'',start:'',end:''};
+    openModal(isEdit?'编辑学期':'新增学期',
+        '<div class="form-item"><label class="form-label required">学期名称</label><div class="form-control"><input class="form-input" id="semesterName" value="'+s.name+'" placeholder="如 2026年秋季" maxlength="20"></div></div>'
+        +'<div class="form-item"><label class="form-label required">开始日期</label><div class="form-control"><input class="form-input" type="date" id="semesterStart" value="'+s.start+'"></div></div>'
+        +'<div class="form-item"><label class="form-label required">结束日期</label><div class="form-control"><input class="form-input" type="date" id="semesterEnd" value="'+s.end+'"></div></div>',
+        '<button class="btn btn-default" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveSemester('+idx+')">确定</button>'
+    );
+}
+function saveSemester(idx){
+    var n=document.getElementById('semesterName').value.trim();
+    var s=document.getElementById('semesterStart').value;
+    var e=document.getElementById('semesterEnd').value;
+    if(!n||!s||!e){toast('请填写完整信息','error');return;}
+    if(s>=e){toast('结束日期必须晚于开始日期','error');return;}
+    if(idx>=0) semesters[idx]={...semesters[idx],name:n,start:s,end:e};
+    else semesters.push({name:n,start:s,end:e,fees:[
+        {cls:'小班',b:'0.00',f:'0.00'},{cls:'中班',b:'0.00',f:'0.00'},{cls:'大班',b:'0.00',f:'0.00'}
+    ]});
+    closeModal();
+    document.querySelector('#admin-content').innerHTML=renderSemesterManage();
+    toast(idx>=0?'学期已更新':'学期已新增','success');
+}
+function confirmDelSemester(idx){
+    openModal('确认删除', '确定要删除学期「'+semesters[idx].name+'」吗？删除后不可恢复。',
+        '<button class="btn btn-default" onclick="closeModal()">取消</button><button class="btn btn-danger" onclick="delSemester('+idx+')">确定删除</button>'
+    );
+}
+function delSemester(idx){
+    semesters.splice(idx,1);
+    closeModal();
+    document.querySelector('#admin-content').innerHTML=renderSemesterManage();
+    toast('已删除','success');
+}
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', ()=>{ navTo('review-list'); });
+</script>
+</body>
+</html>
